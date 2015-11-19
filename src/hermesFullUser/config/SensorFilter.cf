@@ -1,0 +1,109 @@
+/* this file contains the filter specifications for all sensory data.
+   For each DOF, cutoff frequency in % of the Nyquist frequency for a
+   second order butterworth filter are given */
+   Note: the file is parsed according to keywords, after the keyword,
+         the values need to come in the correct sequence */
+
+/* format: keyword, cutoff th, cutoff thd, cutoff thdd, cutoff load  */
+
+  L_SFE  10 10 10 10 
+  L_SAA  10 10 10 10 
+  L_HR   10 10 10 10 
+  L_EB   10 10 10 10 
+  L_WR   10 10 10 10 
+  L_WFE  10 10 10 10 
+  L_WAA  10 10 10 10 
+
+  R_SFE  10 10 10 10 
+  R_SAA  10 10 10 10 
+  R_HR   10 10 10 10 
+  R_EB   10 10 10 10 
+  R_WR   10 10 10 10 
+  R_WFE  10 10 10 10 
+  R_WAA  10 10 10 10 
+
+  L_HFE  10 10 10 10 
+  L_HAA  10 10 10 10  
+  L_HFR  10 10 10 10  
+  L_KFE  10 10 10 10 
+  L_AR   10 10 10 10  
+  L_AFE  10 10 10 10 
+  L_AAA  10 10 10 10  
+
+  R_HFE  10 10 10 10 
+  R_HAA  10 10 10 10  
+  R_HFR  10 10 10 10  
+  R_KFE  10 10 10 10 
+  R_AR   10 10 10 10 
+  R_AFE  10 10 10 10 
+  R_AAA  10 10 10 10 
+
+  B_TR   10 10 10 10
+  B_TAA  10 10 10 10
+  B_TFE  10 10 10 10
+
+  B_HN   10 10 10 10 
+  B_HT   10 10 10 10
+  B_HR   10 10 10 10
+
+  L_EP   10 10 10 10 
+  L_ET   10 10 10 10 
+  R_EP   10 10 10 10 
+  R_ET   10 10 10 10 
+
+  R_THR  10 10 10 10 
+  R_THF  10 10 10 10 
+  R_IF   10 10 10 10 
+  R_MF   10 10 10 10 
+  R_RF   10 10 10 10 
+  R_LF   10 10 10 10 
+
+  L_THR  10 10 10 10 
+  L_THF  10 10 10 10 
+  L_IF   10 10 10 10 
+  L_MF   10 10 10 10 
+  L_RF   10 10 10 10 
+  L_LF   10 10 10 10 
+
+  BODY_Q0_IMU 	10
+  BODY_Q1_IMU	10
+  BODY_Q2_IMU	10
+  BODY_Q3_IMU	10
+
+  BODY_TSTAMP_IMU 100
+
+  BODY_AD_A_IMU	10
+  BODY_AD_B_IMU	10
+  BODY_AD_G_IMU	10
+
+  BODY_XACC_IMU	10
+  BODY_YACC_IMU	10
+  BODY_ZACC_IMU	10
+
+  L_CFx        10
+  L_CFy        10
+  L_CFz        10
+
+  L_CTa        10
+  L_CTb        10
+  L_CTg        10
+
+  R_CFx        10
+  R_CFy        10
+  R_CFz        10
+
+  R_CTa        10
+  R_CTb        10
+  R_CTg        10
+
+
+  R_FOOT_XACC  10
+  R_FOOT_YACC  10
+  R_FOOT_ZACC  10
+  L_FOOT_XACC  10
+  L_FOOT_YACC  10
+  L_FOOT_ZACC  10
+
+  B_XACC_UNSTAB_IMU 10
+  B_YACC_UNSTAB_IMU 10
+  B_ZACC_UNSTAB_IMU 10

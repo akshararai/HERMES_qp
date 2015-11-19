@@ -1,0 +1,11 @@
+/** base state estimation config **/
+NUM_MEAS 1000
+SAMPLE_FREQ 100
+/*MISC_SENSOR_GRAV 0.00348071, 0.00200402, 9.7763*/
+
+/*IMU_BASE_ROT 0.0, 0.0, -1.0, -1.0, 0.0, 0.0, 0.0, 1.0, 0.0*/
+/*IMU_BASE_ROT 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0*/
+IMU_BASE_ROT 0.0, 0.0, -1.0, -1.0, 0.0, 0.0, 0.0, 1.0, 0.0
+
+IMU_BASE_TRANS 0.0, 0.129, 0.1855
+LEAKAGE_FACTOR 0.995

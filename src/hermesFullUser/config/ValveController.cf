@@ -1,0 +1,79 @@
+/* this file contains the parameters for the valve controller implemented in SL
+   Note: the file is parsed according to keywords, after the keyword,
+         the values need to come in the correct sequence */
+
+/*
+First the P D and I gains for the controller
+
+I_saturation is the maximum error the I control can have
+
+I_forgetting is such that is I_forgetting is 1/control rate then it behaves as a P controller
+if it is = 2/control rate it forgets the error in 2 time steps, etc...
+
+vel_comp_gain is the gain for the velocity compensation = K * dq
+
+max_valve is the maximum command that can be sent to the valves (in absolute value) 
+/*
+
+/* format: keyword, P, D, I, I_saturation, I_forgetting, vel_comp_gain, max_valve, valve_offset*/
+
+  L_HFE		0.4		0.002	0.003	3000	0.1		14000	10000	-330//18000 close to unstable
+  L_HAA		0.6		0.002	0.003	3000	0.1		-14000	5000	-200//19000 unstable
+  L_HFR		1.0		0.002	0		0		0.001	0		3000	50 //velocity comp. is problematic
+  L_KFE		0.6		0.005	0.0015	3000	0.1		-14000	10000	0 //-18000 is at the verge of unstability for vel comp
+  L_AR		0.4		0.002	0.001	3000	0.1		6000	3000	260
+  L_AFE		1.2		0.002	0.003	3000	0.1		12000	15000	450 //15000 unstable
+  L_AAA		3.0		0.002	0.005	3000	0.1		-12000	15000	90 //15000 unstable
+  
+  R_HFE		0.35	0.002	0.0035	3000	0.1		14000	10000	120
+  R_HAA		0.6		0.002	0.003	3000	0.1		-14000	5000	470
+  R_HFR		1.5		0.002	0		0		0.001	0		3000	370
+  R_KFE		0.5		0.005	0.020	3000	0.1		-14000	10000	-500 //very different from L_KFE
+  R_AR		0.4		0.002	0.001	3000	0.1		6000	3000	-150
+  R_AFE		1.2		0.002	0.003	3000	0.1		12000	15000	-470
+  R_AAA		3.0		0.002	0.005	3000	0.1		-12000	15000	-1000
+
+  L_SFE		0	0	0	0	0.001	0	0	0
+  L_SAA		0	0	0	0	0.001	0	0	0
+  L_HR		0	0	0	0	0.001	0	0	0
+  L_EB		0	0	0	0	0.001	0	0	0
+  L_WR		0	0	0	0	0.001	0	0	0
+  L_WFE		0	0	0	0	0.001	0	0	0
+  L_WAA		0	0	0	0	0.001	0	0	0
+
+  R_SFE		0	0	0	0	0.001	0	0	0
+  R_SAA		0	0	0	0	0.001	0	0	0
+  R_HR		0	0	0	0	0.001	0	0	0
+  R_EB		0	0	0	0	0.001	0	0	0
+  R_WR		0	0	0	0	0.001	0	0	0
+  R_WFE		0	0	0	0	0.001	0	0	0
+  R_WAA		0	0	0	0	0.001	0	0	0
+
+  B_TR		0	0	0	0	0.001	0	0	0
+  B_TAA		0	0	0	0	0.001	0	0	0
+  B_TFE		0	0	0	0	0.001	0	0	0
+
+  B_HN		0	0	0	0	0.001	0	0	0
+  B_HT		0	0	0	0	0.001	0	0	0
+  B_HR		0	0	0	0	0.001	0	0	0
+
+  R_EP		0	0	0	0	0.001	0	0	0
+  R_ET		0	0	0	0	0.001	0	0	0
+  L_EP		0	0	0	0	0.001	0	0	0
+  L_ET		0	0	0	0	0.001	0	0	0
+
+
+  L_THR		0	0	0	0	0.001	0	0	0
+  L_THF		0	0	0	0	0.001	0	0	0
+  L_IF		0	0	0	0	0.001	0	0	0
+  L_MF		0	0	0	0	0.001	0	0	0
+  L_RF		0	0	0	0	0.001	0	0	0
+  L_LF		0	0	0	0	0.001	0	0	0
+
+  R_THR		0	0	0	0	0.001	0	0	0
+  R_THF		0	0	0	0	0.001	0	0	0
+  R_IF		0	0	0	0	0.001	0	0	0
+  R_MF		0	0	0	0	0.001	0	0	0
+  R_RF		0	0	0	0	0.001	0	0	0
+  R_LF		0	0	0	0	0.001	0	0	0
+

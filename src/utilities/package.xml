@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package>
+  <name>utilities</name>
+  <version>1.0.0</version>
+  <description>utilities</description>
+  <maintainer email="kalakris@usc.edu">Mrinal Kalakrishnan</maintainer>
+  <license>TODO</license>
+  <author email="sschaal@usc.edu">Stefan Schaal</author>
+  <buildtool_depend>catkin</buildtool_depend>
+  <export>
+  </export>
+</package>

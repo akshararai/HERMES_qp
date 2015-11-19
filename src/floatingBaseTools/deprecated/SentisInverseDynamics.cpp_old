@@ -1,0 +1,226 @@
+/*! 
+* \file SentisInverseDynamics.cpp
+*
+* \brief
+*
+* \author Ludovic Righetti
+* \date Mar 25, 2010
+*
+*/
+
+#include "SentisInverseDynamics.h"
+
+SentisInverseDynamics::SentisInverseDynamics(int nbDofs, int nbEndEffs) : InverseDynamics(nbDofs, nbEndEffs){
+	// TODO Auto-generated constructor stub
+
+	printf("Using Sentis Inverse Dynamics controller\n");
+
+	inertiaNullSpaceProjConstraintJacobian = my_matrix(1, numFloatDofs, 1, numFloatDofs);
+	inertiaPseudoInvConstraintJacobian = my_matrix(1, numFloatDofs, 1, 6*nbEndEffs);
+}
+
+SentisInverseDynamics::~SentisInverseDynamics() {
+	// TODO Auto-generated destructor stub
+
+	my_free_matrix(inertiaNullSpaceProjConstraintJacobian, 1, nbDofs+6, 1, nbDofs+6);
+	my_free_matrix(inertiaPseudoInvConstraintJacobian, 1, numFloatDofs, 1, 6*nbEndEffs);
+
+}
+
+
+
+
+int SentisInverseDynamics::computeInverseDynamics(SL_Jstate *currJointState, SL_endeff *currEndEff, SL_Cstate *baseState, SL_quat *baseOrient)
+{
+	int tempNumConst, tempNumFloat;
+
+	SL_uext tmp_uext[nbDofs + 1];
+	memset(tmp_uext, 0, sizeof(SL_uext) * (nbDofs + 1));
+
+	//we update the current inertia and CG matrices FB model with the joint state u
+	SL_ForDynComp(currJointState,baseState, baseOrient, tmp_uext, currEndEff, currentM, currentCG);
+
+	//we invert the mass matrix
+	if(!my_inv_ludcmp(currentM, numFloatDofs, currentInvM)) {
+		printf("ERROR: SentisInverseDynamics>>ComputeInverseDynamics - Cannot invert M\n");
+	}
+
+	for(int i=1; i<=nbDofs; i++)
+	  {
+	    currentJointState[i] = currJointState[i];
+	  }
+	  for(int i=1; i<=nbEndEffs; i++)
+	  {
+	    currentEndEffs[i] = currEndEff[i];
+	  }
+	  currentBaseOrient = *baseOrient;
+	  currentBaseState = *baseState;
+
+	//we get the constrained jacobian
+	computeConstraintJacobian(currJointState, baseState, baseOrient,
+			currEndEff, constraintJacobian, &tempNumConst, &tempNumFloat);
+
+	//if we have a new num of Constraints we predictedRForces
+	if (tempNumConst != numConstraints) {
+		if (predictedRForces != NULL) {//matrices were already allocated we free them
+			my_free_vector(predictedRForces, 1, numConstraints);
+		}
+		//we update the num of constraints
+		numConstraints = tempNumConst;
+		numUnconstDim = numFloatDofs - numConstraints;
+
+		//and reallocate the matrices
+		predictedRForces = my_vector(1, numConstraints);
+
+		//the previous jacobian is not valid anymore
+		validJacobian = false;
+	}
+
+	//we get the time derivative of the constraint Jacobian if it is initialized
+	if (validJacobian) {
+		mat_sub(constraintJacobian, prevConstraintJacobian, dConstraintJacobian);
+		mat_mult_scalar(dConstraintJacobian, (double) task_servo_rate,
+				dConstraintJacobian);
+	} else {
+		mat_zero(dConstraintJacobian);
+		validJacobian = true;
+	}
+	mat_equal(constraintJacobian, prevConstraintJacobian);
+
+	//compute the weighted pseudo inverse of Jc -> pseudoInvConstraintJacobian
+	MY_MATRIX(realJc, 1, numConstraints, 1, numFloatDofs);
+	MY_MATRIX(JcJcT, 1, numConstraints, 1, numConstraints);
+	MY_MATRIX(pJc, 1, numFloatDofs, 1, numConstraints);
+	MY_MATRIX(invMJcT, 1, numFloatDofs, 1, numConstraints);
+
+	//get the inertia weighted pseudo inverse
+	mat_equal_size(constraintJacobian, numConstraints, numFloatDofs, realJc);
+	mat_mult_normal_transpose(currentInvM, realJc, invMJcT);
+	mat_mult_normal_normal(realJc, invMJcT, JcJcT);
+	if(!my_inv_ludcmp(JcJcT, numConstraints, JcJcT)) {
+		printf("ERROR: SentisInverseDynamics>>ComputeInverseDynamics - Cannot invert JcMJcT\n");
+	}
+	mat_mult_normal_normal(invMJcT, JcJcT, pJc);
+	mat_zero(inertiaPseudoInvConstraintJacobian);
+	mat_equal_size(pJc, numFloatDofs, numConstraints, inertiaPseudoInvConstraintJacobian);
+
+	//get the MP pseudo inverse of Jc (non weighted)
+	mat_mult_normal_transpose(realJc, realJc, JcJcT);
+	if(!my_inv_ludcmp(JcJcT, numConstraints, JcJcT)) {
+		printf("ERROR: SentisInverseDynamics>>ComputeInverseDynamics - Cannot invert JcJcT\n");
+	}
+	mat_mult_transpose_normal(realJc, JcJcT, pJc);
+	mat_zero(pseudoInvConstraintJacobian);
+	mat_equal_size(pJc, numFloatDofs, numConstraints, pseudoInvConstraintJacobian);
+
+	//compute the null space projector of Jc (weighted and non weighted)
+	//I - Jc+ * Jc
+	mat_mult_normal_normal(pseudoInvConstraintJacobian, constraintJacobian, nullSpaceProjConstraintJacobian);
+	mat_mult_normal_normal(inertiaPseudoInvConstraintJacobian, constraintJacobian, inertiaNullSpaceProjConstraintJacobian);
+
+	mat_mult_scalar(nullSpaceProjConstraintJacobian, -1, nullSpaceProjConstraintJacobian);
+	mat_mult_scalar(inertiaNullSpaceProjConstraintJacobian, -1, inertiaNullSpaceProjConstraintJacobian);
+
+	for(int i=1; i<=numFloatDofs; i++){
+		nullSpaceProjConstraintJacobian[i][i] +=1;
+		inertiaNullSpaceProjConstraintJacobian[i][i] += 1;
+	}
+
+	//update the weighting for the ID
+	updatePseudoInverseWeight();
+
+
+	//now we compute the torqueProjector that we will use to compute the torques
+	MY_MATRIX(invMNcT, 1, numFloatDofs, 1, numFloatDofs);
+	mat_mult_normal_transpose(currentInvM, inertiaNullSpaceProjConstraintJacobian, invMNcT);
+	MY_MATRIX(SinvMNcTST, 1, nbDofs, 1, nbDofs);
+	mat_equal_size(invMNcT, nbDofs, nbDofs, SinvMNcTST);
+
+	MY_MATRIX(pseudoInverse, 1, nbDofs, 1, nbDofs);
+
+	//get the pseudo inverse of SinvMNcTST using svd if numConstraints>6
+	if(numConstraints<=6) {//case of full rank
+		if(!my_inv_ludcmp(SinvMNcTST, nbDofs, pseudoInverse)) {
+			printf("ERROR: SentisInverseDynamics>>ComputeInverseDynamics - Cannot invert SinvMNcTST with 6 constraints\n");
+		}
+		// the internal torque projector is void
+		mat_zero(internalTorquesProjector);
+
+	} else {//case of not full rank
+
+		//we compute the square root of the weight
+		MY_MATRIX(U, 1, nbDofs, 1, nbDofs);
+		MY_VECTOR(sigma, 1, nbDofs);
+		MY_MATRIX(V, 1, nbDofs, 1, nbDofs);
+		mat_equal(this->pseudoInverseWeight, U);
+		my_svdcmp(U, nbDofs, nbDofs, sigma, V);
+		MY_MATRIX(sqrtW, 1, nbDofs, 1, nbDofs);
+		mat_zero(sqrtW);
+		for(int i=1; i<=nbDofs; i++) {
+			sqrtW[i][i] = sqrt(sigma[i]);
+		}
+		mat_mult_normal_normal(U, sqrtW, sqrtW);
+		mat_mult_normal_transpose(sqrtW, V, sqrtW);
+
+		//S invM NcT ST W1/2
+		mat_mult_normal_normal(SinvMNcTST, sqrtW, U);
+
+		//now we get the pseudo inverse of that
+		my_svdcmp(U, nbDofs, nbDofs, sigma, V);
+		mat_zero(pseudoInverse);
+		for(int i=1; i<=nbDofs; i++) {
+			if(sigma[i] > 0.001) {
+				pseudoInverse[i][i] = 1/sigma[i];
+			}
+		}
+		mat_mult_normal_normal(V, pseudoInverse, pseudoInverse);
+		mat_mult_normal_transpose(pseudoInverse, U, pseudoInverse);
+
+		mat_mult_normal_normal(sqrtW, pseudoInverse, pseudoInverse);
+
+		//we also compute the internal torques projector times W1/2 = Nw sqrt(W)
+		mat_mult(pseudoInverse, SinvMNcTST, internalTorquesProjector);
+		for(int i=1; i<=nbDofs; i++) {
+			for(int j=1; j<=nbDofs; j++) {
+				internalTorquesProjector[i][j] = -internalTorquesProjector[i][j];
+			}
+			internalTorquesProjector[i][i] += 1.0;
+		}
+		mat_mult_normal_normal(internalTorquesProjector, this->pseudoInverseWeight, internalTorquesProjector);
+	}
+	//and the torque projector
+	MY_MATRIX(SNcinvM, 1, nbDofs, 1, numFloatDofs);
+	mat_mult_transpose_normal(this->ST, inertiaNullSpaceProjConstraintJacobian, SNcinvM);
+	mat_mult_normal_normal(SNcinvM, currentInvM, SNcinvM);
+	mat_mult_normal_normal(pseudoInverse, SNcinvM, torqueProjector);
+
+
+
+	return numConstraints;
+}
+
+
+
+
+
+
+void SentisInverseDynamics::computeReactionForces(Vector reactionForces)
+{
+	vec_zero(this->predictedRForces);
+	vec_zero(reactionForces);
+}
+
+void SentisInverseDynamics::recordVariables(char *filename)
+{
+	FILE *my_file = fopen(filename, "w");
+	printf("recording\n");
+	fprint_mat(my_file, "Jc", constraintJacobian);
+	fprint_mat(my_file, "M", currentM);
+	fprint_vec(my_file, "h", currentCG);
+	fprint_vec(my_file, "desMddq", des_Mddq_h);
+	fclose(my_file);
+}
+
+
+
+

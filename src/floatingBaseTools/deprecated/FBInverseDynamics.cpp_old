@@ -1,0 +1,273 @@
+/*!
+ * \file FBInverseDynamics.cpp
+ *
+ * \brief Class for Floating base inverse dynamics
+ *
+ * \author Ludovic Righetti
+ * \date Dec 2, 2009
+ *
+ */
+
+#include "FBInverseDynamics.h"
+#include "SL_common.h"
+
+using namespace std;
+
+FBInverseDynamics::FBInverseDynamics(int nbDofs, int nbEndEffs) : InverseDynamics(nbDofs, nbEndEffs) {
+
+  printf("Instantiated QR Inverse Dynamics controller\n");
+
+
+  Q = my_matrix(1, numFloatDofs, 1, numFloatDofs);
+  sv = my_vector(1, numFloatDofs);
+
+  Wc = my_matrix(1, numFloatDofs, 1, numFloatDofs);
+
+  userDefinedWeights = my_vector(1, 2*N_CART*nbEndEffs);
+  vec_equal_scalar(1, userDefinedWeights);
+  if(!read_parameter_pool_double_array("ParameterPool.cf", "contact_opt_weights", 2*N_CART*nbEndEffs, userDefinedWeights))
+  {
+    printf("Cannot read contact opt weights in parameter pool, setting to default\n");
+  }
+  else
+  {
+    print_vec("userDefinedWeights", userDefinedWeights);
+  }
+}
+
+FBInverseDynamics::~FBInverseDynamics() {
+  //we free everything
+  my_free_matrix(Q, 1, numFloatDofs, 1, numFloatDofs);
+  my_free_vector(sv, 1, numFloatDofs);
+  my_free_matrix(Qu, 1, numFloatDofs, 1, numUnconstDim);
+  my_free_matrix(R, 1, numConstraints, 1, numConstraints);
+  my_free_matrix(invR, 1, numConstraints, 1, numConstraints);
+
+  my_free_matrix(Wc, 1, numFloatDofs, 1, numFloatDofs);
+
+  my_free_vector(userDefinedWeights, 1, 2*N_CART*nbEndEffs);
+}
+
+
+
+
+int FBInverseDynamics::computeInverseDynamics(SL_Jstate *currJointState,
+                                              SL_endeff *currEndEff, SL_Cstate *baseState, SL_quat *baseOrient) {
+  int tempNumConst, tempNumFloat;
+
+  SL_uext tmp_uext[nbDofs + 1];
+  memset(tmp_uext, 0, sizeof(SL_uext) * (nbDofs + 1));
+
+  //we update the current inertia and CG matrices FB model with the joint state u
+  SL_ForDynComp(currJointState,baseState, baseOrient, tmp_uext, currEndEff, currentM, currentCG);
+
+  //we invert the mass matrix
+  if(!my_inv_ludcmp(currentM, numFloatDofs, currentInvM)) {
+    printf("ERROR: FB InverseDynamics>>ComputeInverseDynamics - Cannot invert M\n");
+  }
+
+  for(int i=1; i<=nbDofs; i++)
+  {
+    currentJointState[i] = currJointState[i];
+  }
+  for(int i=1; i<=nbEndEffs; i++)
+  {
+    currentEndEffs[i] = currEndEff[i];
+  }
+  currentBaseOrient = *baseOrient;
+  currentBaseState = *baseState;
+
+  //we get the constrained jacobian
+  computeConstraintJacobian(currJointState, baseState, baseOrient,
+                            currEndEff, constraintJacobian, &tempNumConst, &tempNumFloat);
+
+  //if we have a new num of Constraints we reallocate the Qu and R matrices
+  if (tempNumConst != numConstraints) {
+    if (Qu != NULL) {//matrices were already allocated we free them
+      my_free_matrix(Qu, 1, numFloatDofs, 1, numUnconstDim);
+      my_free_matrix(R, 1, numConstraints, 1, numConstraints);
+      my_free_vector(predictedRForces, 1, numConstraints);
+      my_free_matrix(invR, 1, numConstraints, 1, numConstraints);
+    }
+    //we update the num of constraints
+    numConstraints = tempNumConst;
+    numUnconstDim = numFloatDofs - numConstraints;
+
+    //and reallocate the matrices
+    Qu = my_matrix(1, numFloatDofs, 1, numUnconstDim);
+    R = my_matrix(1, numConstraints, 1, numConstraints);
+    invR = my_matrix(1, numConstraints, 1, numConstraints);
+    predictedRForces = my_vector(1, numConstraints);
+
+    //the previous jacobian is not valid anymore
+    validJacobian = false;
+  }
+
+  //we get the time derivative of the constraint Jacobian if it is initialized
+  if (validJacobian) {
+    mat_sub(constraintJacobian, prevConstraintJacobian, dConstraintJacobian);
+    mat_mult_scalar(dConstraintJacobian, (double) task_servo_rate,
+                    dConstraintJacobian);
+  } else {
+    mat_zero(dConstraintJacobian);
+    validJacobian = true;
+  }
+  mat_equal(constraintJacobian, prevConstraintJacobian);
+
+  //we get the QR decomposition of the Jacobian
+  computeQR(this->constraintJacobian, numConstraints, numFloatDofs, Q, Qu, R, sv);
+
+  //we compute the pseudo inverse of the constraint jacobian
+  if(!my_inv_ludcmp(R, numConstraints, invR)) {
+    printf("ERROR FBInverseDynamics>>Compute inverse dynamics cannot get inverse of R\n");
+  }
+  //Q * inv(R)
+  mat_zero(pseudoInvConstraintJacobian);
+  mat_trans_size(invR, numConstraints, numConstraints, pseudoInvConstraintJacobian);
+  mat_mult_normal_normal(Q, pseudoInvConstraintJacobian, pseudoInvConstraintJacobian);
+
+
+  //we compute the null space projector non weighted
+  //I - Jc+ * Jc
+  mat_mult_normal_normal(pseudoInvConstraintJacobian, constraintJacobian, nullSpaceProjConstraintJacobian);
+  mat_mult_scalar(nullSpaceProjConstraintJacobian, -1, nullSpaceProjConstraintJacobian);
+  for(int i=1; i<=numFloatDofs; i++){
+    nullSpaceProjConstraintJacobian[i][i] +=1;
+  }
+
+  //now we compute the torqueProjector that we will use to compute the torques
+  MY_MATRIX(SuQTST, 1, numUnconstDim, 1, nbDofs);
+  mat_mult_transpose_normal(Qu, ST, SuQTST);
+
+  //we get the weighed pseudo inverse of that
+  if(weightType == USER_DEFINED_WEIGHT)
+  {
+    MY_MATRIX(invRQT, 1, numFloatDofs, 1, numFloatDofs);
+    mat_eye(invRQT);
+    for(int i=1; i<=numConstraints; i++)
+    {
+      for(int j=1; j<=numConstraints; j++)
+      {
+        invRQT[i][j] = this->invR[i][j];
+      }
+    }
+    mat_mult_normal_transpose(invRQT, this->Q, invRQT);
+
+    MY_MATRIX(Wlambda, 1, numFloatDofs, 1, numFloatDofs);
+    mat_eye(Wlambda);
+
+    //fill the weight matrix according to the user defined weights found in param pool
+    int index = 1;
+    for(int i=1; i<=nbEndEffs; i++)
+    {
+      for(int j=1; j<=2*N_CART; j++)
+      {
+        if(currEndEff[i].c[j])
+        {
+          Wlambda[index][index] = userDefinedWeights[2*N_CART*(i-1) + j];
+          index++;
+        }
+      }
+    }
+
+    mat_mult(Wlambda, invRQT, Wc);
+    mat_mult_transpose_normal(invRQT, Wc, Wc);
+
+
+    mat_equal_size(Wc, nbDofs, nbDofs, pseudoInverseWeight);
+    if(!my_inv_ludcmp(pseudoInverseWeight, nbDofs, pseudoInverseWeight)) {
+      printf("ERROR >> ComputeInverseDynamics cannot invert SWcST\n");
+    }
+  }
+  else
+  {
+    updatePseudoInverseWeight();
+    mat_equal(this->currentInvM, this->Wc);
+  }
+
+  MY_MATRIX(Pseudo_Inv, 1, nbDofs, 1, numUnconstDim);
+
+  MY_MATRIX(Proj_SuQTST, 1, numUnconstDim, 1, numUnconstDim);
+  MY_MATRIX(W_STQSuT, 1, nbDofs, 1, numUnconstDim);
+
+  //now we can compute the weighted pseudo inverse
+  mat_mult_normal_transpose(pseudoInverseWeight, SuQTST, W_STQSuT);
+  mat_mult_normal_normal(SuQTST, W_STQSuT, Proj_SuQTST);
+  if (!my_inv_ludcmp(Proj_SuQTST, numUnconstDim, Proj_SuQTST)) {
+    printf("ERROR>>ComputeInverseDynamics cannot get pseudo inverse\n");
+  }
+
+  mat_mult_normal_normal(W_STQSuT, Proj_SuQTST, Pseudo_Inv);
+
+  //we now have the projector in torque space
+  mat_mult_normal_transpose(Pseudo_Inv, Qu, torqueProjector);
+
+
+  //we also compute the internal torques projector times W1/2 = Nw sqrt(W)
+  mat_mult_normal_normal(Pseudo_Inv, SuQTST, internalTorquesProjector);
+  mat_mult_scalar(internalTorquesProjector, -1, internalTorquesProjector);
+  for(int i=1; i<=nbDofs; i++) {
+    internalTorquesProjector[i][i] += 1;
+  }
+  mat_mult_normal_normal(internalTorquesProjector, this->pseudoInverseWeight, internalTorquesProjector);
+
+  return numConstraints;
+}
+
+
+
+void FBInverseDynamics::computeReactionForces(Vector reactionForces) {
+  MY_VECTOR(temp_vec, 1, numFloatDofs);
+  vec_zero(temp_vec);
+  vec_equal_size(this->desTorques, nbDofs, temp_vec);
+
+  vec_sub(this->des_Mddq_h, temp_vec, temp_vec);
+
+  //Sc * QT
+  MY_MATRIX(ScQT, 1, numConstraints, 1, numFloatDofs);
+  mat_trans_size(Q, numFloatDofs, numConstraints, ScQT);
+
+  //invR * Sc * QT
+  mat_mult_normal_normal(invR, ScQT, ScQT);
+
+  //predicted forces
+  mat_vec_mult(ScQT, temp_vec, this->predictedRForces);
+  vec_equal(this->predictedRForces, reactionForces);
+}
+
+void FBInverseDynamics::addGRFOptimalInternalTorques(Vector torques)
+{
+  MY_VECTOR(intTorque, 1, nbDofs);
+  MY_VECTOR(tmpTorque, 1, numFloatDofs);
+
+
+  mat_vec_mult(this->Wc, this->des_Mddq_h, tmpTorque);
+
+  vec_equal_size(tmpTorque, nbDofs, intTorque);
+  mat_vec_mult(this->internalTorquesProjector, intTorque, intTorque);
+
+  vec_add(intTorque, this->desTorques, this->desTorques);
+  vec_equal(this->desTorques, torques);
+
+  //	print_vec("internal torques", intTorque);
+
+}
+
+
+void FBInverseDynamics::recordVariables(char *filename)
+{
+  FILE *my_file = fopen(filename, "w");
+  printf("recording\n");
+  fprint_mat(my_file, "Jc", constraintJacobian);
+  //	fprint_mat(my_file, "Q", Q);
+  //	fprint_mat(my_file, "R", R);
+  fprint_mat(my_file, "M", currentM);
+  fprint_vec(my_file, "h", currentCG);
+  fprint_vec(my_file, "desMddq", des_Mddq_h);
+  fclose(my_file);
+}
+
+
+
+
+

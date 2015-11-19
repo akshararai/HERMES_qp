@@ -1,0 +1,48 @@
+/*!
+* \file SentisInverseDynamics.h
+*
+* \brief This class implements an inverse dynamics using the law found by constraint elimination in the rigid body dynamics
+*
+* \author Ludovic Righetti
+* \date Jul 8, 2010
+*
+*/
+
+#ifndef NATURALINVERSEDYNAMICS_H_
+#define NATURALINVERSEDYNAMICS_H_
+
+#include "InverseDynamics.h"
+#include <cmath>
+
+class NaturalInverseDynamics : public InverseDynamics{
+public:
+	NaturalInverseDynamics(int nbDofs, int nbEndEffs);
+	virtual ~NaturalInverseDynamics();
+
+	/*!
+	* Compute the inverse dynamics parameters (i.e. the torque projector)
+	* it updates the constraintJacobian and derivative, currentM and CG, torqueProjector
+	* @param currJointState [in] current joint state
+	* @param currEndEff [in] current endeff state (with constraints)
+	* @param baseState [in] current base state
+	* @param baseOrient [in] current base orientation
+	* @return number of constraints
+	*/
+	int computeInverseDynamics(SL_Jstate *currJointState, SL_endeff *currEndEff, SL_Cstate *baseState, SL_quat *baseOrient);
+
+	/*!
+	* Computes the GRF using desAcc, des_Mddq_h and torques
+	* Updates this->predictedRForces
+	* @param reactionForces [out] the ground reaction forces
+	*/
+	void computeReactionForces(Vector reactionForces);
+
+	void recordVariables(char *filename);
+
+
+private:
+	///the inertia weighted pseudo inverse Jacobian and its nullspace projector
+	Matrix inertiaPseudoInvConstraintJacobian, inertiaNullSpaceProjConstraintJacobian;
+};
+
+#endif /* NATURALINVERSEDYNAMICS_H_ */

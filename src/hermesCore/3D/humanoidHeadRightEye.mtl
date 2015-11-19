@@ -1,0 +1,16 @@
+#
+# Wavefront material file: C:\Users\crawfoa\Desktop\humanoidHeadRightEye.mtl
+#
+# Converted by the PolyTrans geometry converter from Okino Computer Graphics, Inc.
+# Date/time of export: 07/31/2012 10:33:35
+#
+# Bounding box of geometry = (1.72181,0.989383,-0.840418) to (3.8892,3.27239,0.87518).
+
+newmtl default
+	Ns 32
+	d 1
+	illum 2
+	Kd 0.4 0.4 0.4
+	Ks 0.7 0.7 0.7
+	Ka 0.3 0.3 0.3
+

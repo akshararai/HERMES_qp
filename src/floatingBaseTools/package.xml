@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package>
+  <name>floating_base_tools</name>
+  <version>1.0.0</version>
+  <description>floating_base_tools</description>
+  <author email="aherzog@tuebingen.mpg.de">Alexander Herzog</author>
+  <maintainer email="aherzog@tuebingen.mpg.de">Alexander Herzog</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sl</build_depend>
+  <build_depend>hermes_lower</build_depend>  
+  <build_depend>hermes_full</build_depend>
+  <build_depend>athena</build_depend>
+  <run_depend>sl</run_depend>
+  
+  <export>
+  </export>
+</package>

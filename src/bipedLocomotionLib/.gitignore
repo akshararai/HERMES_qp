@@ -1,0 +1,7 @@
+.cproject
+.project
+*~
+.pydevproject
+Makefile
+.DS_Store
+*.pyc

@@ -1,0 +1,48 @@
+/*****************************************************************************
+ This is an Imakefile for GNU make, relying on special imake rules in
+ ~sschaal/prog/imake. In order to use imake and make correctly, look
+ into the README file in ~sschaal/prog/imake.
+
+ Definition of variables:
+
+ SOURCES  : All source files which are used in this Imakefile. Imake
+            will automatically generate dependencies to keep these
+            source files up-to-date with repect to included header files.
+
+ HEADERS  : All header to be kept up to data
+ OBJECTS  : All object files to be used in certain rules. See SS_Imake.rules
+ SRCDIR   : Directory where source files come from (global variable)
+ LIBDIR   : Where to install a lib
+ HEADERDIR: Where to install header files
+ BINDIR   : Where to install executables
+ INCLUDES : All include directories
+
+ Stefan Schaal, September 1996
+
+****************************************************************************/
+ 
+
+
+INCLUDES               = -I ../include -I../src -I$(MYINCLUDEPATH) $(MATLAB_INCLUDES)
+CFLAGS                 = $(OPTIMIZE_CC_FLAGS) $(MATLAB_CC_FLAGS)
+SRCDIR                 = ../src
+LIBDIR                 = $(MYLIBDIR)/$(MACHTYPE)
+HEADERDIR              = $(MYINCLUDEPATH)
+LIBRARIES              = -L$(MYLIBDIR)/$(MACHTYPE) -lutility -lm
+BINDIR                 = $(MYBINDIR)/$(MACHTYPE)
+
+SOURCES = lwpr_test.c lwpr.c lwpr_main.c lwpr_stat.c lwpr_script.c lwpr_sfun.c ascii2mrdplot.c
+OBJECTS = lwpr_test.o lwpr.o lwpr_main.o lwpr_stat.o lwpr_script.o lwpr_sfun.o ascii2mrdplot.o
+HEADERS = lwpr.h
+
+OBJS_XLWPR  = lwpr_test.o lwpr_main.o lwpr.o lwpr_script.o
+OBJS_XLSTAT = lwpr_stat.o lwpr_main.o lwpr.o lwpr_script.o
+OBJS_LIB    = lwpr.o lwpr_script.o
+OBJS_A2M    = ascii2mrdplot.o
+
+LibraryListTarget(lwpr,$(OBJS_LIB))
+ProgramListTarget(xascii2mrplot,$(OBJS_A2M),)
+ProgramListTarget( xlwpr, $(OBJS_XLWPR), )
+ProgramListTarget( xlwprstat, $(OBJS_XLSTAT), )
+/* MexListTarget(lwpr_sfun,lwpr_sfun.o lwpr.o lwpr_script.o,) */
+NormalObjRule( $(OBJECTS) )

@@ -1,0 +1,165 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 6.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[      4979,        156]
+NotebookOptionsPosition[      3932,        120]
+NotebookOutlinePosition[      4557,        144]
+CellTagsIndexPosition[      4514,        141]
+WindowFrame->Normal
+ContainsDynamic->False*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+  "SetDirectory", "[", 
+   "\"\</Volumes/vangogh/sschaal/Documents/Math/ControlTheory\>\"", "]"}], 
+  ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"<<", "RigidBodyDynamics.m"}]], "Input",
+ AspectRatioFixed->True],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "[", "\"\<hermes\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{3.559169755140093*^9}],
+
+Cell["Generate the C-code", "Text"],
+
+Cell[BoxData[
+ RowBox[{"OpenGLKinematics", "[", 
+  RowBox[{"\"\<hermes.dyn\>\"", ",", "\"\<hermes\>\""}], "]"}]], "Input",
+ CellChangeTimes->{{3.559169755167975*^9, 3.559169755187031*^9}}],
+
+Cell[BoxData[
+ RowBox[{"InvDynNE", "[", 
+  RowBox[{"\"\<hermes.dyn\>\"", ",", "\"\<hermes\>\"", ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "0", ",", 
+     RowBox[{"-", "gravity"}]}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.49446814409175*^9, 3.4944681441916723`*^9}, {
+  3.559169755221387*^9, 3.559169755235282*^9}},
+ AspectRatioFixed->True],
+
+Cell[BoxData[
+ RowBox[{"InvDynArt", "[", 
+  RowBox[{"\"\<hermes.dyn\>\"", ",", "\"\<hermes\>\"", ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "0", ",", 
+     RowBox[{"-", "gravity"}]}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.5591697552728024`*^9, 3.559169755286742*^9}}],
+
+Cell[BoxData[
+ RowBox[{"LinkEndpointKinematics", "[", 
+  RowBox[{"\"\<hermes.dyn\>\"", ",", "\"\<hermes\>\""}], "]"}]], "Input",
+ CellChangeTimes->{{3.559169755318297*^9, 3.5591697553384457`*^9}},
+ AspectRatioFixed->True],
+
+Cell[BoxData[
+ RowBox[{"GeometricJacobian", "[", 
+  RowBox[{"\"\<hermes.dyn\>\"", ",", 
+   RowBox[{"{", 
+    RowBox[{"115", ",", "108", ",", "133", ",", "126"}], "}"}], ",", 
+   "\"\<hermes\>\""}], "]"}]], "Input",
+ CellChangeTimes->{{3.559169755368565*^9, 3.559169755387381*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ForDynArt", "[", 
+  RowBox[{"\"\<hermes.dyn\>\"", ",", "\"\<hermes\>\"", ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "0", ",", 
+     RowBox[{"-", "gravity"}]}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.494468153063867*^9, 3.494468153455882*^9}, {
+  3.559169755452916*^9, 3.559169755474773*^9}},
+ AspectRatioFixed->True],
+
+Cell[BoxData[
+ RowBox[{"ForDynComp", "[", 
+  RowBox[{"\"\<hermes.dyn\>\"", ",", "\"\<hermes\>\"", ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "0", ",", 
+     RowBox[{"-", "gravity"}]}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.5591697555016193`*^9, 3.559169755518268*^9}},
+ AspectRatioFixed->True],
+
+Cell[BoxData[
+ RowBox[{"LinkInformation", "[", 
+  RowBox[{"\"\<hermes.dyn\>\"", ",", "\"\<hermes\>\""}], "]"}]], "Input",
+ CellChangeTimes->{{3.5591697555543756`*^9, 3.5591697555683107`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ParmEst", "[", 
+  RowBox[{"\"\<hermes.dyn\>\"", ",", "\"\<hermes\>\"", ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "0", ",", 
+     RowBox[{"-", "gravity"}]}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.559169755606399*^9, 3.5591697556211767`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"GeometricJacobian", "[", 
+  RowBox[{"\"\<hermes.dyn\>\"", ",", 
+   RowBox[{"{", "138", "}"}], ",", "\"\<hermes_head\>\""}], "]"}]], "Input",
+ CellChangeTimes->{{3.559169755652093*^9, 3.559169755670492*^9}}],
+
+Cell[BoxData[
+ RowBox[{"LinkRotationMatrix", "[", 
+  RowBox[{"\"\<hermes.dyn\>\"", ",", 
+   RowBox[{"{", "138", "}"}], ",", "\"\<hermes_head\>\""}], "]"}]], "Input",
+ CellChangeTimes->{{3.559169755702817*^9, 3.559169755720377*^9}}]
+},
+WindowToolbars->{},
+CellGrouping->Automatic,
+WindowSize->{775, 853},
+WindowMargins->{{Automatic, 377}, {137, Automatic}},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, 128}},
+ShowSelection->True,
+ShowCellLabel->True,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False},
+CharacterEncoding->"MacintoshAutomaticEncoding",
+FrontEndVersion->"6.0 for Mac OS X x86 (32-bit) (June 19, 2007)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[568, 21, 153, 5, 27, "Input"],
+Cell[724, 28, 88, 2, 27, "Input"],
+Cell[815, 32, 138, 3, 27, "Input"],
+Cell[956, 37, 35, 0, 26, "Text"],
+Cell[994, 39, 188, 3, 27, "Input"],
+Cell[1185, 44, 351, 8, 27, "Input"],
+Cell[1539, 54, 279, 6, 27, "Input"],
+Cell[1821, 62, 221, 4, 27, "Input"],
+Cell[2045, 68, 280, 6, 27, "Input"],
+Cell[2328, 76, 351, 8, 27, "Input"],
+Cell[2682, 86, 305, 7, 27, "Input"],
+Cell[2990, 95, 191, 3, 27, "Input"],
+Cell[3184, 100, 277, 6, 27, "Input"],
+Cell[3464, 108, 230, 4, 27, "Input"],
+Cell[3697, 114, 231, 4, 27, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)

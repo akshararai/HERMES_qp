@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package>
+  <name>hermes_core</name>
+  <version>1.0.0</version>
+  <description>hermes_core</description>
+  <author email="sschaal@usc.edu">Stefan Schaal</author>
+  <maintainer email="aherzog@tuebingen.mpg.de">Alexander Herzog</maintainer>
+  <license>TODO</license>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sl_config</build_depend>
+  <build_depend>sl</build_depend>
+  
+  <run_depend>sl_config</run_depend>
+  <run_depend>sl</run_depend>  
+
+  <export>
+  </export>
+</package>

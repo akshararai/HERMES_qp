@@ -1,0 +1,27 @@
+/* Foot Contact Handler */
+FRICTION_COEFICIENT	0.8
+
+/* use a scaled version of the foot surface for cop constraints */
+FOOT_SURFACE_SCALE 0.75 1.0 0.75 /* in standardized frame */
+
+/* Gains */
+COG_P_GAINS 4000 3500 7000
+COG_D_GAINS 2000 2500 4000
+
+POSTURE_P_GAINS 0 0 0 0 0 0 0 /**/ 0 0 0 0 0 0 0 /**/ 400 400 400 500 400 500 40 /**/ 400 400 400 500 400 500 40 /**/ 600 600 600 /**/ 0 0 0  0 0 0 /**/ 0 0 0 0 /**/ 0 0 0 0 0 0 0 0 0 /**/0 0 0 	0 0 0 
+POSTURE_D_GAINS 0 0 0 0 0 0 0 /**/ 0 0 0 0 0 0 0 /**/ 250 70 150 150 100 70 1 /**/ 250 70 150 150 100 70 1 /**/ 150 150 150 /**/ 0 0 0  0 0 0/**/ 0 0 0 0 /**/ 0 0 0 0 /**/ 0 0 0 /**/ 0 0 0 /**/ 0 0 0  0 0 0
+
+/* Weights */
+FOOT_CONSTR_WEIGHT 10 10 10  10 10 10
+COG_CTRL_WEIGHT 10 10 10  0 0 0
+FRC_REG_WEIGHT 0. 1. 0.  0. 1. 0.
+JOINT_CTRL_WEIGHT 0. 0. 0.  0. 0. 0. 0. /**/0. 0. 0.  0. 0. 0. 0. /**/ .1 .1 .1 .1 .1 .1 .1 /**/ .1 .1 .1 .1 .1 .1 .1 /**/ .1 .1 .1 /**/ 0. 0. 0.  0. 0. 0. /**/ 0. 0. 0. 0.  /**/ 0. 0. 0.  0. 0. 0.   0. 0. 0. /**/ 0. 0. 0.  0. 0. 0. 
+/* ranks */
+foot_constr_rank 1	
+cog_ctrl_rank 2
+joint_ctrl_rank 3
+frc_reg_rank 4
+
+/* some simulation parameters */
+push_force 300.
+push_dur 0.4

@@ -1,0 +1,102 @@
+/*
+ * OptimalInverseDynamics.h
+ *
+ *  Created on: Nov 19, 2011
+ *      Author: righetti
+ */
+
+#ifndef OPTIMALINVERSEDYNAMICS_H_
+#define OPTIMALINVERSEDYNAMICS_H_
+
+#include <SL.h>
+#include <utility_macros.h>
+#include <utility.h>
+#include <SL_dynamics.h>
+#include <SL_kinematics.h>
+#include <SL_task_servo.h>
+#include <cmath>
+
+namespace floating_base_utilities
+{
+
+class OptimalInverseDynamics
+{
+public:
+  OptimalInverseDynamics();
+  virtual ~OptimalInverseDynamics();
+
+  /*!
+   * prepare constrained Jacobian used to compute the pseudo inverse
+   * as well as its associated pseudo inverse values, etc...
+   * it is in this function that the optimization weight is updated
+   * @param joint_state
+   * @param end_effs
+   * @param base_state
+   * @param base_orient
+   * @param prepare_jc (if true, computes also the MP inverse of JC)
+   * @return
+   */
+  bool prepareInverseDynamics(SL_Jstate* j_state, SL_endeff* end_effectors, SL_Cstate& base_state, SL_quat& base_orient, bool prepare_jc = true);
+
+
+  //returns the constrained Jacobian and friends
+  void getConstraintJacobian(Matrix Jc, Matrix dJc, Matrix Jc_pinv, Matrix null_Jc);
+
+  //compute torques
+  void computeTorques(SL_DJstate* des_joint_state, SL_endeff* end_effectors, SL_Cstate& base_state, SL_quat& base_orient);
+
+  //computes the full inverse dynamics - constrained Jacobian and torques
+  bool computeInverseDynamics(SL_DJstate* des_joint_state, SL_endeff* end_effectors,
+                              SL_Cstate& base_state, SL_quat& base_orient);
+
+  void getPredictedReactionForces(Vector reaction_forces);
+
+  void setTorqueAndContactWeights(Matrix command_weight, Matrix forces_weight);
+
+  double getPredictedCost() { return predicted_command_cost_ + predicted_constraint_cost_; };
+  double getPredictedCommandCost() { return predicted_command_cost_; };
+  double getPredictedConstraintCost() { return predicted_constraint_cost_; };
+
+
+private:
+
+  bool updatePseudoInverseWeight(SL_endeff* end_effectors, Matrix invRQT);
+  void updateConstraintJacobianValues(Matrix Q, Matrix R_inverse);
+
+  //a version faster than SL as it computes R inverse in a smart way
+  void computeJacobianQR(Matrix Q, Matrix Qu, Matrix R_inverse);
+
+  //inverse of positive definite matrix using Cholesky decomposition (supposedly faster than lu decomp)
+  bool computeInversePDMatrix(Matrix W);
+
+  int num_floating_dofs_;
+  int num_end_effectors_;
+  int num_joints_;
+  int num_constraints_;
+  int num_unconstrained_dimensions_;
+
+  Matrix Jc_, previous_Jc_;
+  Matrix Jc_pinv_;
+  Matrix dJc_;
+  Matrix null_Jc_;
+  bool valid_jacobian_;
+  iMatrix previous_constraints_;
+
+  Matrix torque_projector_;
+  Matrix contact_projector_;
+
+  Matrix pseudo_inverse_weight_; //inverse of W
+  Matrix full_constraint_weight_; //Wc
+
+  Matrix command_cost_weight_; //W tau
+  Matrix constraint_cost_weight_; //Wlambda
+
+  Vector reaction_forces_;
+  Vector desired_torques_;
+
+  double predicted_command_cost_;
+  double predicted_constraint_cost_;
+};
+
+} /* namespace inverse_dynamics */
+#endif /* OPTIMALINVERSEDYNAMICS_H_ */

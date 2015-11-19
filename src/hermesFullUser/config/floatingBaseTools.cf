@@ -1,0 +1,22 @@
+/* Specializations for the robot */
+
+/** For each endeffector a standardized frame is used to make gain **/
+/** tuning and expressing of constraints and costs easier. It is defined **/
+/** such that the y-axis is pointing towards the typical contact surface. **/
+/** For example on the foot of a human **/
+/** it points from the ankle down to the floor. The x-axis lies in the **/
+/** sagittal plane and points away from the body. In the following a rotation **/
+/** from the standardized to the endeffector frame is given for each endeffector. **/
+/** The rotation matrix is given row-wise. **/
+STD_FRAME_RIGHT_HAND    0.0 -1.0  0.0    0.0  0.0  1.0   -1.0  0.0  0.0
+STD_FRAME_LEFT_HAND     0.0  1.0  0.0    0.0  0.0 -1.0   -1.0  0.0  0.0
+STD_FRAME_RIGHT_FOOT    0.0  1.0  0.0   -1.0  0.0  0.0    0.0  0.0  1.0 /** WARNIN: THIS HAS NOT NEEN TESTED */
+STD_FRAME_LEFT_FOOT     0.0  1.0  0.0   -1.0  0.0  0.0    0.0  0.0  1.0 /** WARNIN: THIS HAS NOT NEEN TESTED */
+
+/** RtEiquadprog requires a p.d. hessian. In case the hessian is psd, we add the following slack. **/
+PSD_HESSIAN_DIAG 0.00001
+HSOL_MAX_EQ_COND  1e8
+INEQ_RELAX 1e-6
+/** Parameters for data collection **/
+RTQP_COLLECT_PROBLEMS 0
+RTQP_COLLECT_RATE 1 /** e.g. 1 is every call, 2 every second call, etc. **/

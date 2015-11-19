@@ -1,0 +1,41 @@
+/** gains for posture PD control */
+MCG_POSE_P_GAIN	50 10 10 10 10 10 10 /**/ 50 10 10 10 10 10 10 /**/ 50 10 10 0 1 1 1 /**/ 50 10 10 0 1 1 1 /**/ 10 10 10 /**/ 10 10 10 /**/ 10 10 10 10 /**/ 10 10 10 10 10 10 /**/ 10 10 10 10 10 10 /**/
+MCG_POSE_D_GAIN 10 10 10 10 10 6 10 /**/ 10 10 10 10 10 6 10 /**/ 10 10 10 0 0.1 0.1 0.1 /**/ 10 10 10 0 0.1 0.1 0.1 /**/ 2 2 2 /**/ 2 2 2 /**/ 2 2 2 2 /**/ 2 2 2 2 2 2 /**/  2 2 2 2 2 2 /**/
+
+
+/** gains for linear momentum PD control */
+/**MCG_LIN_MOM_P_GAIN	15 15 15**/
+/**MCG_LIN_MOM_D_GAIN	4 4 4**/
+
+/** gains for rotational momentum damping */
+/**MCG_ROT_MOM_D_GAIN	4 0 4 **/
+
+/** forward push */
+/**MCG_PUSH_FORCE 250**/
+
+/** weights for rate tracking **/
+RATE_TRACK_WEIGHT 10 10 0.1 0.1 0.1 0.1
+FORCE_REG_WEIGHT 0.02 0.0001 0.02 0.02 0.02 0.02
+SWING_TRACK_WEIGHT 100 100 100 1 1 1
+
+/** swing foot gains **/
+/**SWING_FOOT_P_GAIN 200 200 200 1 1 1**/
+/**SWING_FOOT_D_GAIN 10 10 10 0.1 0.1 0.1**/
+
+/** torso orientation gains **/
+TORSO_ROT_P_GAIN 100 100 100
+TORSO_ROT_D_GAIN 10 10 10
+
+/** joint break params **/
+JOINT_PADDING 0.01 0.03 0.01 0.01 0.03 0.01 0.01 /**/ 0.01 0.03 0.01 0.01 0.03 0.01 0.01 /**/ 0.01 0.03 0.01 0.01 0.03 0.01 0.01 /**/ 0.01 0.03 0.01 0.01 0.03 0.01 0.01 /**/ 0.01 0.01 0.01 /**/ 0.01 0.01 0.01 /**/ 0.01 0.01 0.01 0.01 /**/ 0.01 0.01 0.01 0.01 0.01 0.01 /**/ 0.01 0.01 0.01 0.01 0.01 0.01
+MAX_JOINT_ACC 50 50 50 50 50 50 50 /**/ 50 50 50 50 50 50 50 /**/ 50 50 50 50 50 50 50 /**/ 50 50 50 50 50 50 50 /**/ 50 50 50 /**/ 50 50 50 /**/ 50 50 50 50 /**/ 50 50 50 50 50 50 /**/ 50 50 50 50 50 50 
+JACC_LIM_SLOPE 1 1 1 1 1 1 1 /**/ 1 1 1 1 1 1 1 /**/ 1 1 1 1 1 1 1 /**/ 1 1 1 1 1 1 1 /**/ 1 1 1 /**/ 1 1 1 /**/ 1 1 1 1 /**/ 1 1 1 1 1 1 /**/ 1 1 1 1 1 1 
+
+/*** Foot Contact Handler */
+FRICTION_COEFICIENT	1.1
+
+/* use a scaled version of the foot surface for cop constraints */
+FOOT_SURFACE_SCALE 0.8
+
+/** stepping speed */
+/**STEPPING_SPEED 8**/

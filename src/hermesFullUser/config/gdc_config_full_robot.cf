@@ -1,0 +1,59 @@
+/*
+
+This file contains the configuration of the gdc card. It specifies which are the available DoFs (i.e. which gdc cards should be controlled).
+
+JointName NetworkAddressIndex CardNumber Active DofNum
+EndeffectorName NetworkAddressIndex CardNumber Active
+
+*/
+
+
+L_SFE	1	16	1	1
+L_SAA	1	15	1	2
+L_HR	1	17	1	3
+L_EB	1	18	1	4
+L_WR	1	19	1	5
+L_WFE	1	20	1	6
+L_WAA	1	21	1	7
+
+R_SFE	1	9	1	8
+R_SAA	1	8	1	9
+R_HR	1	10	1	10
+R_EB	1	11	1	11
+R_WR	1	12	1	12
+R_WFE	1	13	1	13
+R_WAA	1	14	1	14
+
+L_HFE	1	23	1	15
+L_HAA	1	22	1	16
+L_HFR	1	24	1	17
+L_KFE	1	25	1	18
+L_AR	1	26	1	19
+L_AFE	1	28	1	20
+L_AAA	1	27	1	21
+
+R_HFE	1	30	1	22
+R_HAA	1	29	1	23
+R_HFR	1	31	1	24
+R_KFE	1	32	1	25
+R_AR	1	33	1	26
+R_AFE	1	35	1	27
+R_AAA	1	34	1	28
+
+B_TR	1	38	1	29
+B_TAA	1	37	1	30
+B_TFE	1	36	1	31
+
+B_HN	1	7	1	32
+B_HT	1	6	1	33
+B_HR	1	5	1	34
+
+R_EP	1	1	1	35
+R_ET	1	2	1	36
+	
+L_EP	1	3	1	37
+L_ET	1	4	1	38
+
+
+RIGHT_FOOT	1	40	1
+LEFT_FOOT	1	39	1

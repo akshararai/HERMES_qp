@@ -1,0 +1,68 @@
+/*!
+* \file FBInverseDynamics.h
+*
+* \brief Class for Floating base inverse dynamics
+*
+* \author Ludovic Righetti
+* \date Dec 2, 2009
+*
+*/
+
+#ifndef FBINVERSEDYNAMICS_H_
+#define FBINVERSEDYNAMICS_H_
+
+#include "InverseDynamics.h"
+
+/*! \class
+*
+*/
+class FBInverseDynamics : public InverseDynamics{
+public:
+	/*!
+	* Class constructor
+	* @param nbDofs input the number of degrees of freedom
+	* @return
+	*/
+	FBInverseDynamics(int nbDofs, int nbEndEffs);
+	virtual ~FBInverseDynamics();
+
+	/*!
+	* Compute the FB inverse dynamics parameters (i.e. the torque projector)
+	* it updates Q, Qu, R, sv, constraintJacobian and derivative, currentM and CG, torqueProjector
+	* @param currJointState [in] current joint state
+	* @param currEndEff [in] current endeff state (with constraints)
+	* @param baseState [in] current base state
+	* @param baseOrient [in] current base orientation
+	* @return number of constraints
+	*/
+	int computeInverseDynamics(SL_Jstate *currJointState, SL_endeff *currEndEff, SL_Cstate *baseState, SL_quat *baseOrient);
+
+	/*!
+	* Computes the GRF using desAcc, des_Mddq_h and torques
+	* Updates this->predictedRForces
+	* @param reactionForces [out] the ground reaction forces
+	*/
+	void computeReactionForces(Vector reactionForces);
+
+	/*!
+	 * !!Overloaded from the parent one!!
+	* This function adds to desTorques the internal torque InternalTorquesProjector * S * (ddq + invM * h)
+	* @param torques returns the resulting desired torques
+	*/
+	void addGRFOptimalInternalTorques(Vector torques);
+
+	void recordVariables(char *filename);
+
+private:
+	///matrix from the QR decomposition Qu and R have their size changed each time we change the num of constraints
+	Matrix Q, Qu, R, invR;
+
+	///vector of eigen values after svd decomp of constraint Jacobian
+	Vector sv;
+
+	Matrix Wc;
+
+	Vector userDefinedWeights;
+};
+
+#endif /* FBINVERSEDYNAMICS_H_ */

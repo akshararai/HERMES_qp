@@ -1,0 +1,102 @@
+/*****************************************************************************
+ This is an Imakefile for GNU make, relying on special imake rules in
+ ~sschaal/prog/imake. In order to use imake and make correctly, look
+ into the README file in ~sschaal/prog/imake.
+
+ Definition of variables:
+
+ SOURCES  : All source files which are used in this Imakefile. Imake
+            will automatically generate dependencies to keep these
+            source files up-to-date with repect to included header files.
+
+ HEADERS  : All header to be kept up to data
+ OBJECTS  : All object files to be used in certain rules. See SS_Imake.rules
+ SRCDIR   : Directory where source files come from (global variable)
+ LIBDIR   : Where to install a lib
+ HEADERDIR: Where to install header files
+ BINDIR   : Where to install executables
+ INCLUDES : All include directories
+
+ Stefan Schaal, September 1996
+
+****************************************************************************/
+
+INCLUDE_SUBDIRS = $(shell find $(SRCDIR)/$(USER_DIR)/src -type d | grep -v svn | sed 's/\(.*\)/-I\1/' | tr "\n" " ")
+INCLUDE_SUBDIRS += $(shell find $(SRCDIR)/$(BIPED_LOC_LIB_DIR)/src -type d | grep -v svn | sed 's/\(.*\)/-I\1/' | tr "\n" " ")
+INCLUDE_SUBDIRS += $(shell find $(SRCDIR)/$(FLOATING_BASE_TOOLS_DIR)/include -type d | grep -v svn | sed 's/\(.*\)/-I\1/' | tr "\n" " ")
+
+USER_DIR		= hermesFullUser
+BIPED_LOC_LIB_DIR	= bipedLocomotionLib
+FLOATING_BASE_TOOLS_DIR = floatingBaseTools
+SRCDIR                 = $(PROG_ROOT)
+INCLUDES               = \
+			 -I../include \
+		  	$(INCLUDE_SUBDIRS) \
+			 -I$(MY_INCLUDES) \
+			 -I$(LAB_INCLUDES) \
+		 	 -I$(LAB_ROOT)/hermesFull/include \
+			 -I$(LAB_ROOT)/hermesFull/math \
+                         -I/sw/include \
+                         -I/usr/X11/include \
+                         -I/usr/local/glut/include \
+			-I/usr/local/include/eigen3 \
+			-I/usr/include/eigen3 
+
+CFLAGS                 = $(OPTIMIZE_CC_FLAGS) $(INCLUDES) -D$(MACHTYPE) -DEIGEN_NO_DEBUG -DRTEIG_NO_ASSERTS -DEIGEN_STACK_ALLOCATION_LIMIT=0
+//CFLAGS                 = $(DEBUG_CC_FLAGS) $(INCLUDES) -D$(MACHTYPE) -DEIGEN_STACK_ALLOCATION_LIMIT=0
+LIBDIR                 = $(MY_LIBDIR)/$(MACHTYPE)
+HEADERDIR              = $(MY_INCLUDES)
+LDFLAGS                = -L$(MY_LIBDIR)/$(MACHTYPE) $(LAB_LIBDIR) 
+LIBRARIES              = 
+BINDIR                 = .
+
+LIB_TASK      = -lhermesFull_task -lhermesFull -lSLtask -lSLcommon -lutility $(COMM_LIBRARIES) -lm -lboost_system-mt -lboost_thread-mt \
+-lboost_filesystem-mt -lboost_regex-mt
+LIB_OPENGL    = -lhermesFull_openGL -lhermesFull -lSLopenGL -lSLcommon -lutility $(COMM_LIBRARIES) -lm  $(OPENGL_LIBRARIES) -lpng
+LIB_SIM       = -lhermesFull_simulation -lhermesFull -lSLsimulation -lSLcommon -lutility $(COMM_LIBRARIES) -lm
+
+CPP_SRCS_XTASK = $(shell find $(SRCDIR)/$(USER_DIR)/src/task -regex "[^\#]*\.cpp" -printf "$(USER_DIR)/src/task/%P ")
+CPP_SRCS_XTASK += $(shell find $(SRCDIR)/$(BIPED_LOC_LIB_DIR)/src/task -regex "[^\#]*\.cpp" -printf "$(BIPED_LOC_LIB_DIR)/src/task/%P ")
+CPP_SRCS_XTASK += $(shell find $(SRCDIR)/$(FLOATING_BASE_TOOLS_DIR)/src -regex "[^\#]*\.cpp" -printf "$(FLOATING_BASE_TOOLS_DIR)/src/%P ")
+CPP_OBJS_XTASK = $(patsubst %.cpp,%.o,$(CPP_SRCS_XTASK))
+C_SRCS_XTASK = $(shell find $(SRCDIR)/$(USER_DIR)/src/task -regex "[^\#]*\.c" -printf "$(USER_DIR)/src/task/%P ")
+C_SRCS_XTASK += $(shell find $(SRCDIR)/$(BIPED_LOC_LIB_DIR)/src/task -regex "[^\#]*\.c" -printf "$(BIPED_LOC_LIB_DIR)/src/task/%P ")
+C_OBJS_XTASK = $(patsubst %.c,%.o,$(C_SRCS_XTASK))
+
+CPP_SRCS_XOPENGL = $(shell find $(SRCDIR)/$(USER_DIR)/src/opengl -regex "[^\#]*\.cpp" -printf "$(USER_DIR)/src/opengl/%P ")
+CPP_SRCS_XOPENGL = $(shell find $(SRCDIR)/$(BIPED_LOC_LIB_DIR)/src/opengl -regex "[^\#]*\.cpp" -printf "$(BIPED_LOC_LIB_DIR)/src/opengl/%P ")
+CPP_OBJS_XOPENGL = $(patsubst %.cpp,%.o,$(CPP_SRCS_XOPENGL))
+C_SRCS_XOPENGL = $(shell find $(SRCDIR)/$(USER_DIR)/src/opengl -regex "[^\#]*\.c" -printf "$(USER_DIR)/src/opengl/%P ")
+C_SRCS_XOPENGL += $(shell find $(SRCDIR)/$(BIPED_LOC_LIB_DIR)/src/opengl -regex "[^\#]*\.c" -printf "$(BIPED_LOC_LIB_DIR)/src/opengl/%P ")
+C_OBJS_XOPENGL = $(patsubst %.c,%.o,$(C_SRCS_XOPENGL))
+
+CPP_SRCS_XSIM = $(shell find $(SRCDIR)/$(USER_DIR)/src/sim -regex "[^\#]*\.cpp" -printf "$(USER_DIR)/src/sim/%P ")
+CPP_OBJS_XSIM = $(patsubst %.cpp,%.o,$(CPP_SRCS_XSIM))
+C_SRCS_XSIM = $(shell find $(SRCDIR)/$(USER_DIR)/src/sim -regex "[^\#]*\.c" -printf "$(USER_DIR)/src/sim/%P ")
+C_OBJS_XSIM = $(patsubst %.c,%.o,$(C_SRCS_XSIM))
+
+
+SOURCES = $(CPP_SRCS_XTASK) $(C_SRCS_XTASK) $(C_SRCS_XOPENGL) $(CPP_SRCS_XOPENGL) $(CPP_SRCS_XSIM) $(C_SRCS_XSIM)
+
+C_OBJECTS = $(C_OBJS_XTASK) $(C_OBJS_XOPENGL) $(C_OBJS_XSIM)
+
+CPP_OBJECTS = $(CPP_OBJS_XTASK) $(CPP_OBJS_XOPENGL) $(CPP_OBJS_XSIM)
+
+HEADERS = 
+
+InstallProgram($(LAB_ROOT)/hermesFull/$(MACHTYPE)/xhermes,$(BINDIR))
+InstallProgram($(LAB_ROOT)/hermesFull/$(MACHTYPE)/xmotor,$(BINDIR))
+ifeq ($(HOST),$(HERMES_HOST))
+INCLUDES += -I $(LAB_ROOT)/atiFTSensorLib/include
+LIB_TASK += -L$(LAB_ROOT)/atiFTSensorLib/lib -lati_ft_sensor
+CFLAGS +=  -DUSE_ATI_SENSOR
+InstallProgram($(LAB_ROOT)/hermesFull/$(MACHTYPE)/xrhermes,$(BINDIR))
+InstallProgram($(LAB_ROOT)/hermesFull/$(MACHTYPE)/xrmotor,$(BINDIR))
+endif
+
+ProgramListTargetCpp(xtask, $(CPP_OBJS_XTASK) $(C_OBJS_XTASK), $(LIB_TASK) )
+ProgramListTargetCpp(xopengl, $(CPP_OBJS_XOPENGL) $(C_OBJS_XOPENGL), $(LIB_OPENGL) )
+ProgramListTargetCpp(xsimulation, $(CPP_OBJS_XSIM) $(C_OBJS_XSIM), $(LIB_SIM) )
+
+NormalObjRule( $(C_OBJECTS) )
+NormalCPPObjRule( $(CPP_OBJECTS) )

@@ -1,0 +1,143 @@
+/*****************************************************************************
+ This is an Imakefile for GNU make, relying on special imake rules in
+ ~sschaal/prog/imake. In order to use imake and make correctly, look
+ into the README file in ~sschaal/prog/imake.
+
+ Definition of variables:
+
+ SOURCES  : All source files which are used in this Imakefile. Imake
+            will automatically generate dependencies to keep these
+            source files up-to-date with repect to included header files.
+
+ HEADERS  : All header to be kept up to data
+ OBJECTS  : All object files to be used in certain rules. See SS_Imake.rules
+ SRCDIR   : Directory where source files come from (global variable)
+ LIBDIR   : Where to install a lib
+ HEADERDIR: Where to install header files
+ BINDIR   : Where to install executables
+ INCLUDES : All include directories
+
+ Stefan Schaal, September 1996
+
+****************************************************************************/
+ 
+
+SRCDIR                 = $(LAB_ROOT)
+INCLUDES               = -I$(LAB_ROOT)/hermesCore/include \
+			 -I$(LAB_ROOT)/hermesCore/src \
+			 -I../src \
+                         -I../include \
+                         -I../math \
+			 -I$(MY_INCLUDES) \
+			 -I/usr/X11/include \
+                         -I/usr/local/glut/include
+CFLAGS                 = $(OPTIMIZE_CC_FLAGS) $(INCLUDES) -D$(MACHTYPE)
+LDFLAGS                = $(LAB_LIBDIR)
+LIBDIR                 = $(MYLIBDIR)/$(MACHTYPE)
+HEADERDIR              = $(MYINCLUDEPATH)
+LIBRARIES              = 
+BINDIR                 = .
+
+HERMESCORE_SRCDIR = hermesCore/src
+HERMES_SRCDIR = hermesFull/src
+
+
+SRCS_COMMON  = $(HERMES_SRCDIR)/SL_user_common.c
+SRCS_KINCOMMON = \
+	$(HERMESCORE_SRCDIR)/SL_user_commands.c \
+	$(HERMES_SRCDIR)/SL_kinematics.c \
+	$(HERMES_SRCDIR)/SL_dynamics.c \
+	$(HERMES_SRCDIR)/SL_invDynNE.c \
+	$(HERMES_SRCDIR)/SL_invDynArt.c \
+	$(HERMES_SRCDIR)/SL_forDynComp.c \
+	$(HERMES_SRCDIR)/SL_forDynArt.c
+
+OBJS_COMMON  = $(patsubst %.c,%.o,$(SRCS_COMMON))
+OBJS_KINCOMMON  = $(patsubst %.c,%.o,$(SRCS_KINCOMMON))
+
+SRCS_XHERMES = $(HERMESCORE_SRCDIR)/SL_main.c 
+OBJS_XHERMES = $(patsubst %.c,%.o,$(SRCS_XHERMES))
+LIBS_XHERMES = -lSLcommon -lutility -lX11 -lm 
+
+
+SRCS_XPEST = $(HERMES_SRCDIR)/SL_parm_estimate.c
+OBJS_XPEST = $(patsubst %.c,%.o,$(SRCS_XPEST))
+LIBS_XPEST = -lSLcommon -lutility -lm
+
+
+SRCS_LIBOPENGL = $(HERMES_SRCDIR)/SL_user_openGL.c
+OBJS_LIBOPENGL = $(patsubst %.c,%.o,$(SRCS_LIBOPENGL))
+
+SRCS_XMOTOR = \
+	$(HERMESCORE_SRCDIR)/SL_user_sensor_proc_unix.c \
+	$(HERMESCORE_SRCDIR)/SL_user_motor.c
+OBJS_XMOTOR = $(patsubst %.c,%.o,$(SRCS_XMOTOR))
+LIB_MOTOR     = -lSLmotor -lSLcommon -lutility $(COMM_LIBRARIES) -lm 
+
+SRCS_LIBTASK = $(HERMESCORE_SRCDIR)/SL_user_task.c
+CPPSCRS_LIBTASK = $(HERMESCORE_SRCDIR)/base_state_estimation.cpp
+OBJS_LIBTASK = $(patsubst %.c,%.o,$(SRCS_LIBTASK))
+CPPOBJS_LIBTASK = $(patsubst %.cpp,%.o,$(CPPSCRS_LIBTASK))
+
+SRCS_LIBSIM = $(HERMESCORE_SRCDIR)/SL_user_simulation.c
+OBJS_LIBSIM = $(patsubst %.c,%.o,$(SRCS_LIBSIM))
+
+
+SOURCES  = \
+	$(SRCS_COMMON) $(SRCS_KINCOMMON) $(SRCS_XHERMES) $(SRCS_XPEST) \
+	$(SRCS_LIBOPENGL) $(SRCS_XMOTOR) $(SRCS_LIBTASK) $(SRCS_LIBSIM)
+OBJECTS  = \
+	$(OBJS_COMMON) $(OBJS_KINCOMMON) $(OBJS_XHERMES) $(OBJS_XPEST) \
+	$(OBJS_LIBOPENGL) $(OBJS_XMOTOR) $(OBJS_LIBTASK) $(OBJS_LIBSIM)
+
+CPPOBJECTS += $(CPPOBJS_LIBTASK)
+
+
+HEADERS = 
+
+
+KeepUpToDateCopy( SL_kinematics.c, $(LAB_ROOT)/SL/src, $(SRCDIR)/$(HERMES_SRCDIR))
+KeepUpToDateCopy( SL_dynamics.c, $(LAB_ROOT)/SL/src, $(SRCDIR)/$(HERMES_SRCDIR))
+KeepUpToDateCopy( SL_forDynArt.c, $(LAB_ROOT)/SL/src, $(SRCDIR)/$(HERMES_SRCDIR))
+KeepUpToDateCopy( SL_forDynComp.c, $(LAB_ROOT)/SL/src, $(SRCDIR)/$(HERMES_SRCDIR))
+KeepUpToDateCopy( SL_invDynNE.c, $(LAB_ROOT)/SL/src, $(SRCDIR)/$(HERMES_SRCDIR))
+KeepUpToDateCopy( SL_invDynArt.c, $(LAB_ROOT)/SL/src, $(SRCDIR)/$(HERMES_SRCDIR))
+KeepUpToDateCopy( SL_parm_estimate.c, $(LAB_ROOT)/SL/src, $(SRCDIR)/$(HERMES_SRCDIR))
+
+ProgramListTarget( xpest, $(OBJS_XPEST) $(OBJS_COMMON) $(OBJS_KINCOMMON), $(LIBS_XPEST) )
+
+ProgramListTarget( xhermes, $(OBJS_XHERMES) $(OBJS_COMMON), $(LIBS_XHERMES) )
+ProgramListTarget( xmotor, $(OBJS_XMOTOR) $(OBJS_COMMON) $(OBJS_KINCOMMON),$(LIB_MOTOR) )
+
+LibraryListAddTarget( hermesFull, $(OBJS_COMMON) $(OBJS_KINCOMMON), )
+LibraryListAddTarget( hermesFull_openGL, $(OBJS_LIBOPENGL) ,  )
+LibraryListAddTarget( hermesFull_task, $(CPPOBJS_LIBTASK) $(OBJS_LIBTASK),  )
+LibraryListAddTarget( hermesFull_simulation, $(OBJS_LIBSIM) ,  )
+
+ifeq ($(HOST),$(HERMES_HOST))
+SRCS_XRHERMES = $(HERMESCORE_SRCDIR)/SL_rmain.c
+OBJS_XRHERMES = $(patsubst %.c,%.o,$(SRCS_XRHERMES))
+LIBS_XRHERMES = -lSLcommon -lutility -lX11 -lm 
+
+INCLUDES += -I $(LAB_ROOT)/cb_communication/include
+LIB_RMOTOR = -L$(LAB_ROOT)/cb_communication/lib -lhermes_communication_tools
+LIB_RMOTOR += $(LIB_MOTOR) -lboost_thread-mt -lboost_system-mt
+
+CPPSRCS_XRMOTOR = \
+	$(HERMESCORE_SRCDIR)/valve_controller.cpp \
+	$(HERMESCORE_SRCDIR)/SL_user_sensor_proc_xeno.cpp \
+	$(HERMESCORE_SRCDIR)/gdc_sl_interface.cpp \
+	$(HERMESCORE_SRCDIR)/SL_user_motor_xeno.cpp
+CPPOBJS_XRMOTOR = $(patsubst %.cpp,%.o,$(CPPSRCS_XRMOTOR))
+
+SOURCES += $(SRCS_XRHERMES)
+CPPSOURCES += $(CPPSRCS_XRMOTOR)
+OBJECTS += $(OBJS_XRHERMES)
+CPPOBJECTS += $(CPPOBJS_XRMOTOR)
+ProgramListTarget( xrhermes, $(OBJS_XRHERMES) $(OBJS_COMMON), $(LIBS_XRHERMES) )
+ProgramListTargetCpp( xrmotor, $(OBJS_COMMON) $(OBJS_KINCOMMON) $(CPPOBJS_XRMOTOR) ,$(LIB_RMOTOR) )
+endif
+
+NormalObjRule( $(OBJECTS) )
+NormalObjRuleCpp( $(CPPOBJECTS) )
+

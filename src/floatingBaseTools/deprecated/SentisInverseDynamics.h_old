@@ -1,0 +1,48 @@
+/*! 
+* \file SentisInverseDynamics.h
+*
+* \brief this class implements the inverse dynamics according to the law developped by L. Sentis
+*
+* \author Ludovic Righetti
+* \date Mar 25, 2010
+*
+*/
+
+#ifndef SENTISINVERSEDYNAMICS_H_
+#define SENTISINVERSEDYNAMICS_H_
+
+#include "InverseDynamics.h"
+#include <cmath>
+
+class SentisInverseDynamics : public InverseDynamics{
+public:
+	SentisInverseDynamics(int nbDofs, int nbEndEffs);
+	virtual ~SentisInverseDynamics();
+
+	/*!
+	* Compute the inverse dynamics parameters (i.e. the torque projector)
+	* it updates the constraintJacobian and derivative, currentM and CG, torqueProjector
+	* @param currJointState [in] current joint state
+	* @param currEndEff [in] current endeff state (with constraints)
+	* @param baseState [in] current base state
+	* @param baseOrient [in] current base orientation
+	* @return number of constraints
+	*/
+	int computeInverseDynamics(SL_Jstate *currJointState, SL_endeff *currEndEff, SL_Cstate *baseState, SL_quat *baseOrient);
+
+	/*!
+	* Computes the GRF using desAcc, des_Mddq_h and torques
+	* Updates this->predictedRForces
+	* @param reactionForces [out] the ground reaction forces
+	*/
+	void computeReactionForces(Vector reactionForces);
+
+	void recordVariables(char *filename);
+
+
+private:
+	///the inertia weighted pseudo inverse Jacobian and its nullspace projector
+	Matrix inertiaPseudoInvConstraintJacobian, inertiaNullSpaceProjConstraintJacobian;
+};
+
+#endif /* SENTISINVERSEDYNAMICS_H_ */

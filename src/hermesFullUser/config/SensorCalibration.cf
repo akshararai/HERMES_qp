@@ -1,0 +1,91 @@
+/* this file contains the specification such that all linear actuators
+   and encoders can be represented as torque and rad values.
+   Note: the file is parsed according to keywords, after the keyword,
+         the values need to come in the correct sequence */
+
+/* format: keyword, 
+           sensor type 0:rotary 1:linear
+           actuator type 0:rotary, 1:linear3bar, 2:linearQuadBar, 3:hermesHFR, 4:athenaHFE
+           load cell type 0:rotary(constant moment arm), 1:linear
+
+           moment arm (length from joint rot axis to end of load cell (d)),
+           length from attachement of linear actuator to joint axis (c)
+                   (every linear value is in meters),
+
+           polarity of position sensor (1/-1),
+           polarity of load (1/-1)
+
+           //for the torque sensing - rad and m
+           length of the load cell (a)
+           length of main link (b)
+           angle between d and c when at position 0
+           rotation polarity (whether we need to add or substract th to the fixed angle between d and c)
+
+           //the following are only useful in the quadrilateral configuration
+           distance from main link extremity away from load cell to piston (l1)
+           distance from main link extremity away from load cell to piston attachement (f)
+           angle between c and l1
+*/
+
+
+  L_SFE	0	2	1	0.0255	0.0256	1	1	0.0413	0.0589	2.6235	1.0 0.1454  0.0408  1.8830
+  L_SAA	0	2	1	0.0254	0.0256	1	1	0.0413	0.0589 	4.0164	1.0 0.1455  0.0407  1.8863
+  L_HR	0	0	1	0	0	1	1	0	0	0	1.0 0.0 0.0 0.0
+  L_EB	0	2	1	0.0413 	0.0318 	1	1	0.0413	0.0589	2.3083	1.0 0.1789  0.0406  1.8565
+  L_WR	0	0	1	0	0	1	1	0	0	0	1.0 0.0 0.0 0.0
+  L_WFE	1	1	1	0.0222	0.1248	1	1	0	0	1.3920	1.0 0.0 0.0 0.0
+  L_WAA	1	1	1	0.0181	0.1407	1	1	0	0	1.4418	1.0 0.0 0.0 0.0
+
+  R_SFE	0	2	1 	0.0255	0.0256	1	1	0.0413	0.0589	2.6235	1.0 0.1454  0.0408  1.8830
+  R_SAA	0	2	1 	0.0254	0.0256	1	1	0.0413	0.0589	4.0164	1.0 0.1444  0.0407  1.8863
+  R_HR	0	0	1	0	0	1	1	0	0	0	1.0 0.0 0.0 0.0
+  R_EB  0 	2 	1 	0.0413 	0.0318 	1	1	0.0413	0.0589	2.3083	1.0 0.1789  0.0406  1.8565
+  R_WR  0 	0 	1 	0	0	1	1	0	0	0	1.0 0.0 0.0 0.0
+  R_WFE 1 	1 	1 	0.0222	0.1248	1	1	0	0	1.3920	1.0 0.0 0.0 0.0
+  R_WAA 1 	1 	1 	0.0181	0.1407	1	1	0	0	1.4418	1.0 0.0 0.0 0.0
+
+  L_HFE	0	2	1	0.0497	0.0512	1	1	0.0826	0.1143	4.2369	-1.0	0.272 	0.0813 	1.654 	//verified
+  L_HAA	0	1	1	0.1901 	0.0419	1	-1	0	0	1.7809	1.0	0.0 	0.0 	0.0	//verified
+  L_HFR	0	3	1	0.0459	0	1	1	0	0	0.4595	0.1917	0.0 	0.0	0.0	//verified
+  L_KFE	0	2	1	0.0825	0.0818 	1	-1	0.0826	0.1143	4.468	-1.0	0.2358 	0.0812	2.11	//verified
+  L_AR	0	1	1	0.0696	0.0679	1	1	0	0	1.7236	1.0	0.0 	0.0 	0.0 	//verified
+  L_AFE	0	1	1	0.2685	0.0521 	1	1	0	0	1.3894	-1.0	0.0 	0.0 	0.0 	//verified
+  L_AAA	0	1	1	0.1711	0.0456 	1	-1	0	0	1.6396	1.0 	0.0 	0.0 	0.0	//verified
+
+  R_HFE	0	2	1	0.0497	0.0512 	1	1	0.0826	0.1143	4.2369	-1.0	0.272 	0.0813 	1.654	//verified
+  R_HAA	0	1	1	0.1906	0.0419 	1	-1	0	0	1.7761	1.0 	0.0 	0.0 	0.0	//verified
+  R_HFR	0	3	1	0.0459	0	1	1	0	0	0.4595	0.1917	0.0 	0.0 	0.0	//verified
+  R_KFE	0	2	1	0.0825	0.0818 	1	-1	0.0826	0.1143	4.468	-1.0	0.2358 	0.0812 	2.11	//verified
+  R_AR	0	1	1	0.0696 	0.0679	1	1	0	0	1.7236	1.0	0.0 	0.0 	0.0	//verified
+  R_AFE	0	1	1	0.2685	0.0521 	1	1	0	0	1.3894	-1.0	0.0 	0.0 	0.0	//verified
+  R_AAA	0	1	1	0.1711	0.0456 	1	-1	0	0	1.6396	1.0	0.0 	0.0 	0.0	//verified
+
+  B_TAA	0	1	1	0.1198	0.1309	1	-1	0	0	1.6487	1.0	0.0 	0.0	0.0	//to be tested (pol
+  B_TFE	0	1	1	0.0713	0.1736	1	-1	0	0	1.2925	1.0	0.0 	0.0 	0.0	//to be tested (pol
+  B_TR	0	1	1	0.2065	0.0622	1	-1	0	0	1.6098	1.0	0.0 	0.0	0.0	//to be tested (pol
+
+  B_HN	0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  B_HT  0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  B_HR  0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+
+  L_EP   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  L_ET   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  R_EP   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  R_ET   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+
+  R_THR  0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  R_THF  0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  R_IF   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  R_MF   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  R_RF   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  R_LF   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+
+  L_THR  0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  L_THF  0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  L_IF   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  L_MF   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  L_RF   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+  L_LF   0 0 0 0		0		1	1	0		0		0	1.0	0.0 0.0 0.0
+
+
+

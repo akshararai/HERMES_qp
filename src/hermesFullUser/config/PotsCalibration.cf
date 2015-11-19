@@ -1,0 +1,21 @@
+/* this file contains the calibration value for the pots as measured by Felix and Ludo:
+the min and max position values for each joints in radians are given (cf. wiki and min_max_pots.xls for
+more details on the initial measurements)
+
+So far we have done this only for the legs and HR and AR are only the theoretical values
+*/
+
+L_HFE	-0.498636938	1.597441673
+L_HAA	-0.51673725		0.261656639
+L_HR	-0.436332313	0.436332313		#theoretical value, not measured
+L_KFE	0.000970711		2.088322934
+L_AR	-0.261799388	0.261799388		#theoretical value, not measured
+L_AFE	0.695974933		-0.54317229
+L_AAA	0.269713216		-0.276558729
+R_HFE	-0.520624717	1.503897506
+R_HAA	-0.516244311	0.263894856
+R_HR	-0.436332313	0.436332313		#theoretical value, not measured
+R_KFE	-0.022609024	2.064743199
+R_AR	-0.261799388	0.261799388		#theoretical value, not measured
+R_AFE	0.689431364		-0.540989469
+R_AAA	0.272017344		-0.256801823

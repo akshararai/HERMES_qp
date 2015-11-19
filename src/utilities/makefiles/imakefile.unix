@@ -1,0 +1,101 @@
+/*****************************************************************************
+ This is an Imakefile for GNU make, relying on special imake rules in
+ ~sschaal/prog/imake. In order to use imake and make correctly, look
+ into the README file in ~sschaal/prog/imake.
+
+ Definition of variables:
+
+ SOURCES  : All source files which are used in this Imakefile. Imake
+            will automatically generate dependencies to keep these
+            source files up-to-date with repect to included header files.
+
+ HEADERS  : All header to be kept up to data
+ OBJECTS  : All object files to be used in certain rules. See SS_Imake.rules
+ SRCDIR   : Directory where source files come from (global variable)
+ LIBDIR   : Where to install a lib
+ HEADERDIR: Where to install header files
+ BINDIR   : Where to install executables
+ INCLUDES : All include directories
+
+ Stefan Schaal, September 1996
+
+****************************************************************************/
+ 
+
+
+INCLUDES               = -I../include -I../src -I$(MYINCLUDEPATH)
+CFLAGS                 = $(OPTIMIZE_CC_FLAGS) $(INCLUDES) 
+SRCDIR                 = ../src
+LIBDIR                 = $(MYLIBDIR)/$(MACHTYPE)
+HEADERDIR              = $(MYINCLUDEPATH)
+
+SOURCES = \
+	brent.c \
+	control.c  \
+	dbrent.c  \
+	df1dim.c  \
+	dfpmin.c  \
+	distributions.c  \
+	dlinmin.c  \
+	f1dim.c  \
+	frprmn.c  \
+	j-fixed.c  \
+	ldltinv.c  \
+	linmin.c  \
+	lubksb.c  \
+	ludcmp.c  \
+	mnbrak.c  \
+	numerics_package.c  \
+	powell.c  \
+	stability.c  \
+	svbksb.c  \
+	svdcmp.c  \
+	parm_opt.c \
+	lookup_table.c \
+	kdtree.c \
+	pythag.c \
+	choldc.c \
+	statistics.c \
+	data_sets.c\
+        balanc.c \
+	hqr.c \
+	elmhes.c \
+	utility.c  
+
+OBJECTS = \
+	brent.o \
+	control.o  \
+	dbrent.o  \
+	df1dim.o  \
+	dfpmin.o  \
+	distributions.o  \
+	dlinmin.o  \
+	f1dim.o  \
+	frprmn.o  \
+	j-fixed.o  \
+	ldltinv.o  \
+	linmin.o  \
+	lubksb.o  \
+	ludcmp.o  \
+	mnbrak.o  \
+	numerics_package.o  \
+	powell.o  \
+	stability.o  \
+	svbksb.o  \
+	svdcmp.o  \
+	parm_opt.o \
+	lookup_table.o \
+	kdtree.o \
+	pythag.o \
+	choldc.o \
+	statistics.o \
+	data_sets.o\
+        balanc.o \
+	hqr.o \
+	elmhes.o \
+	utility.o  
+
+HEADERS = utility.h data_sets.h nrutil.h statistics.h utility_macros.h
+
+LibraryTarget( utility )
+NormalObjRule( $(OBJECTS) )

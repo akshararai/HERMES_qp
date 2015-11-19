@@ -1,0 +1,11 @@
+# Blender MTL File: 'ATR.blend'
+# Material Count: 1
+
+newmtl Material.057
+Ns 390.196078
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.156800 0.156800
+Ks 0.482500 0.491000 0.491000
+Ni 1.000000
+d 1.000000
+illum 2

@@ -1,0 +1,362 @@
+/*! 
+ * \file InverseDynamics.cpp
+ *
+ * \brief
+ *
+ * \author Ludovic Righetti
+ * \date Mar 25, 2010
+ *
+ */
+
+#include "InverseDynamics.h"
+
+InverseDynamics::InverseDynamics(int nbDofs, int nbEndEffs) {
+  // TODO Auto-generated constructor stub
+  this->numFloatDofs = nbDofs + 6;
+  this->nbDofs = nbDofs;
+  this->nbEndEffs = nbEndEffs;
+
+  numConstraints = 0;
+  numUnconstDim = numFloatDofs;
+
+  currentM = my_matrix(1, numFloatDofs, 1, numFloatDofs);
+  currentCG = my_vector(1, numFloatDofs);
+  currentInvM = my_matrix(1, numFloatDofs, 1, numFloatDofs);
+
+  currentJointState = new SL_Jstate[nbDofs+1];
+  currentEndEffs = new SL_endeff[nbEndEffs+1];
+
+  ST = my_matrix(1, numFloatDofs, 1, nbDofs);
+  mat_eye(ST);
+
+  torqueProjector = my_matrix(1, nbDofs, 1, numFloatDofs);
+
+  internalTorquesProjector = my_matrix(1, nbDofs, 1, nbDofs);
+
+  constraintJacobian = my_matrix(1, 6 * nbEndEffs, 1, numFloatDofs);
+  prevConstraintJacobian = my_matrix(1, 6 * nbEndEffs, 1, numFloatDofs);
+  dConstraintJacobian = my_matrix(1, 6 * nbEndEffs, 1, numFloatDofs);
+
+  nullSpaceProjConstraintJacobian = my_matrix(1, numFloatDofs, 1, numFloatDofs);
+  pseudoInvConstraintJacobian = my_matrix(1, numFloatDofs, 1, 6*nbEndEffs);
+
+  pseudoInverseWeight = my_matrix(1, nbDofs, 1, nbDofs);
+  mat_eye(pseudoInverseWeight);
+  weightType = IDENTITY;
+
+  enableInternalTorqueControl = false;
+
+  desTorques = my_vector(1, nbDofs);
+  desAcc = my_vector(1, numFloatDofs);
+  des_Mddq_h = my_vector(1, numFloatDofs);
+
+  saturationLimit = my_vector(1, nbDofs);
+  for(int i=1; i<=nbDofs; i++) {
+    saturationLimit[i] = u_max[i];
+  }
+  print_vec("saturation limit", saturationLimit);
+  reset();
+
+  validJacobian = false;
+}
+
+InverseDynamics::~InverseDynamics() {
+  my_free_matrix(currentM, 1, numFloatDofs, 1, numFloatDofs);
+  my_free_vector(currentCG, 1, numFloatDofs);
+  my_free_matrix(currentInvM, 1, numFloatDofs, 1, numFloatDofs);
+
+  my_free_matrix(ST, 1, numFloatDofs, 1, nbDofs);
+
+  my_free_matrix(torqueProjector, 1, nbDofs, 1, numFloatDofs);
+
+  my_free_matrix(internalTorquesProjector, 1, nbDofs, 1, nbDofs);
+
+  my_free_matrix(nullSpaceProjConstraintJacobian, 1, nbDofs+6, 1, nbDofs+6);
+  my_free_matrix(pseudoInvConstraintJacobian, 1, numFloatDofs, 1, 6*nbEndEffs);
+
+  my_free_matrix(pseudoInverseWeight, 1, nbDofs, 1, nbDofs);
+
+  my_free_matrix(constraintJacobian, 1, 6 * nbEndEffs, 1, numFloatDofs);
+  my_free_matrix(prevConstraintJacobian, 1, 6 * nbEndEffs, 1, numFloatDofs);
+  my_free_matrix(dConstraintJacobian, 1, 6 * nbEndEffs, 1, numFloatDofs);
+
+  my_free_vector(desTorques, 1, nbDofs);
+  my_free_vector(desAcc, 1, numFloatDofs);
+  my_free_vector(des_Mddq_h, 1, numFloatDofs);
+
+  my_free_vector(predictedRForces, 1, numConstraints);
+  my_free_vector(saturationLimit, 1, nbDofs);
+
+  delete[] currentJointState;
+  delete[] currentEndEffs;
+}
+
+void InverseDynamics::reset()
+{
+  int answer=-1;
+
+  printf("\n Select weight strategy:\n");
+  printf("0 - Identity \n");
+  printf("1 - Mnn \n");
+  printf("2 - inertia matrix \n");
+  printf("3 - diag(Mnn) \n");
+  printf("4 - User defined \n");
+  printf("5 - Actuator saturation \n");
+  if(get_int("Enter new strategy", this->weightType, &answer)) {
+    if(answer>=0 && answer<6) {
+      this->weightType = (weightMatrixType)answer;
+    }
+  }
+
+  selectWeightStrategy(this->weightType);
+
+  printf("\n");
+  if(get_int("Use internal torque optimization?", (int)this->enableInternalTorqueControl, &answer)) {
+    if(answer == 0) {
+      this->enableInternalTorqueControl = FALSE;
+    } else {
+      this->enableInternalTorqueControl = TRUE;
+    }
+  }
+
+  printf("using Weight strategy %d and force control is %d\n", this->weightType, this->enableInternalTorqueControl);
+}
+
+void InverseDynamics::computeTorques(Vector acc, Vector torques)
+{
+  //we save the desired acceleration
+  vec_equal(acc, this->desAcc);
+
+  //calculate Mddq_h
+  double fbase[N_CART*2 + 1];
+  SL_DJstate desJointTmp[nbDofs+1];
+
+  for(int i=1; i<=nbDofs; i++) {
+    desJointTmp[i].th = currentJointState[i].th;
+    desJointTmp[i].thd = currentJointState[i].thd;
+    desJointTmp[i].thdd = desAcc[i];
+    desJointTmp[i].uex = 0;
+    desJointTmp[i].uff = 0;
+  }
+
+  SL_Cstate baseStateTmp = currentBaseState;
+  SL_quat baseOrientTmp = currentBaseOrient;
+
+  baseStateTmp.xdd[1] = desAcc[nbDofs+1];
+  baseStateTmp.xdd[2] = desAcc[nbDofs+2];
+  baseStateTmp.xdd[3] = desAcc[nbDofs+3];
+  baseOrientTmp.add[1] = desAcc[nbDofs+4];
+  baseOrientTmp.add[2] = desAcc[nbDofs+5];
+  baseOrientTmp.add[3] = desAcc[nbDofs+6];
+
+  SL_InvDynNEBase(NULL, desJointTmp, currentEndEffs, &baseStateTmp, &baseOrientTmp, fbase);
+
+  for(int i=1; i<=nbDofs; i++)
+  {
+    this->des_Mddq_h[i] = desJointTmp[i].uff - links[i].vis*currentJointState[i].thd;
+  }
+
+  for(int i=1; i<=2*N_CART; i++)
+  {
+    this->des_Mddq_h[i+nbDofs] = fbase[i];
+  }
+
+  //project to torques
+  mat_vec_mult(this->torqueProjector, this->des_Mddq_h, this->desTorques);
+
+  if(enableInternalTorqueControl) {
+    addGRFOptimalInternalTorques(this->desTorques);
+  }
+
+  //we add the local contributions - friction
+  for(int i=1; i<=nbDofs; i++)
+  {
+    this->desTorques[i] += links[i].vis*currentJointState[i].thd;
+  }
+
+  //we copy this to the output
+  vec_equal(this->desTorques, torques);
+}
+
+
+
+
+
+void InverseDynamics::getGRFCost(double *theoreticalCost, double *realCost)
+{
+  //the theoretical cost is computed with M ddq + h - ST tau
+  // because it is not straightforward to predict contact forces with Sentis approach
+
+  MY_VECTOR(Mddq_h, 1, numFloatDofs);
+  MY_VECTOR(tmpVect, 1, numFloatDofs);
+
+  mat_vec_mult(this->currentM, this->desAcc, Mddq_h);
+  vec_add(Mddq_h, this->currentCG, Mddq_h);
+
+  MY_VECTOR(JcTLambda, 1, numFloatDofs);
+  vec_zero(JcTLambda);
+  vec_equal_size(this->desTorques, nbDofs, JcTLambda);
+  vec_sub(Mddq_h, JcTLambda, JcTLambda);
+
+  mat_vec_mult(currentInvM, JcTLambda, tmpVect);
+  this->GRFTheoCost = vec_mult_inner(JcTLambda, tmpVect);
+  *theoreticalCost = this->GRFTheoCost;
+
+  //now we compute the real cost
+  MY_VECTOR(lambda, 1, 6*nbEndEffs);
+  for(int i=1; i<=nbEndEffs; i++) {
+    for(int j=1; j<=3; j++) {
+      lambda[(i-1)*6 + j] = endeff[i].cf[j];
+      lambda[(i-1)*6 + j + 3] = endeff[i].ct[j];
+    }
+  }
+
+  MY_MATRIX(JcT, 1, numFloatDofs, 1, 6*nbEndEffs);
+  mat_trans(this->constraintJacobian, JcT);
+  mat_vec_mult(JcT, lambda, JcTLambda);
+  mat_vec_mult(this->currentInvM, JcTLambda, tmpVect);
+  this->GRFRealCost = vec_mult_inner(JcTLambda, tmpVect);
+  *realCost = this->GRFRealCost;
+
+}
+
+
+
+
+
+void InverseDynamics::getconstraintJacobian(Matrix Jc, Matrix dJc, Matrix pseudoInv, Matrix nullSpaceJc)
+{
+  mat_equal(constraintJacobian, Jc);
+  mat_equal(dConstraintJacobian, dJc);
+  mat_equal(nullSpaceProjConstraintJacobian, nullSpaceJc);
+  mat_equal(pseudoInvConstraintJacobian, pseudoInv);
+}
+
+
+
+
+
+void InverseDynamics::selectWeightStrategy(weightMatrixType weightType)
+{
+  this->weightType = weightType;
+}
+
+
+
+
+
+void InverseDynamics::addGRFOptimalInternalTorques(Vector torques)
+{
+  MY_VECTOR(intTorque, 1, nbDofs);
+
+  MY_VECTOR(tmpTorque, 1, numFloatDofs);
+  mat_vec_mult(this->currentInvM, this->currentCG, tmpTorque);
+  vec_add(tmpTorque, this->desAcc, tmpTorque);
+
+  vec_equal_size(tmpTorque, nbDofs, intTorque);
+  mat_vec_mult(this->internalTorquesProjector, intTorque, intTorque);
+
+  vec_add(intTorque, this->desTorques, this->desTorques);
+  vec_equal(this->desTorques, torques);
+
+  //	print_vec("internal torques", intTorque);
+
+}
+
+void InverseDynamics::updatePseudoInverseWeight()
+{
+  MY_MATRIX(crossMbb, 1, nbDofs, 1, nbDofs);
+  MY_MATRIX(invMbb, 1, 6, 1, 6);
+  MY_MATRIX(Mnb_invMbb, 1, nbDofs, 1, 6);
+  MY_MATRIX(MnbT, 1, 6, 1, nbDofs);
+
+  switch(weightType) {
+    case IDENTITY:
+      mat_eye(pseudoInverseWeight);
+      break;
+
+    case MASS_ACTUATOR:
+      mat_equal_size(currentM, nbDofs, nbDofs, pseudoInverseWeight);
+      break;
+
+    case MASS_CROSS_COUPLING:
+      //weight equal Mnn
+      mat_equal_size(currentM, nbDofs, nbDofs, pseudoInverseWeight);
+
+      //add the base and cross coupling terms
+
+      for(int i=1; i<=6; i++) {
+        for(int j=1; j<=6; j++) {
+          invMbb[i][j] = currentM[i + nbDofs][j + nbDofs];
+        }
+        for(int j=1; j<=nbDofs; j++) {
+          Mnb_invMbb[j][i] = currentM[j][i+nbDofs];
+          MnbT[i][j] = currentM[j][i+nbDofs];
+        }
+      }
+      if(!my_inv_ludcmp(invMbb, 6, invMbb)) {
+        printf("ERROR>>ComputeInverseDynamics cannot invert Mbb\n");
+      }
+      mat_mult_normal_normal(Mnb_invMbb, invMbb, Mnb_invMbb);
+      mat_mult_normal_normal(Mnb_invMbb, MnbT, crossMbb);
+      mat_sub(pseudoInverseWeight, crossMbb, pseudoInverseWeight);
+      break;
+
+    case MASS_DIAGONAL:
+      mat_zero(pseudoInverseWeight);
+      for(int i=1; i<=nbDofs; i++) {
+        pseudoInverseWeight[i][i] = currentM[i][i];
+      }
+      break;
+
+    case ACTUATOR_SATURATION:
+      mat_eye(pseudoInverseWeight);
+      for(int i=1; i<=nbDofs; i++) {
+        pseudoInverseWeight[i][i] = (saturationLimit[i]*saturationLimit[i])/100;
+      }
+      break;
+
+    default:
+      mat_eye(pseudoInverseWeight);
+      break;
+  }
+}
+
+
+void InverseDynamics::enableIntTorqueControl(bool en)
+{
+  enableInternalTorqueControl = en;
+}
+
+double InverseDynamics::getTorqueCost(weightMatrixType type)
+{
+  MY_VECTOR(tmpVec, 1, nbDofs);
+
+  switch(type) {
+    case MASS_CROSS_COUPLING:
+      mat_vec_mult_size(currentInvM, nbDofs, nbDofs, desTorques, nbDofs, tmpVec);
+      return vec_mult_inner(desTorques, tmpVec);
+      break;
+
+    case IDENTITY:
+      return vec_mult_inner(desTorques, desTorques);
+      break;
+
+    case ACTUATOR_SATURATION:
+      vec_equal(desTorques, tmpVec);
+      for(int i=1; i<=nbDofs; i++) {
+        tmpVec[i] /= (saturationLimit[i]*saturationLimit[i]);
+      }
+      return vec_mult_inner(tmpVec, desTorques);
+      break;
+
+    default:
+      return 0.0;
+  }
+}
+
+
+
+
+
+

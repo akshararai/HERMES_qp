@@ -1,0 +1,165 @@
+/*! 
+* \file InverseDynamics.h
+*
+* \brief
+*
+* \author Ludovic Righetti
+* \date Mar 25, 2010
+*
+*/
+
+#ifndef INVERSEDYNAMICS_H_
+#define INVERSEDYNAMICS_H_
+
+
+#include "SL.h"
+//#include "SL_user.h"
+#include "utility_macros.h"
+#include "utility.h"
+#include "SL_system_headers.h"
+#include "SL_task_servo.h"
+#include "SL_collect_data.h"
+
+
+#include  "SL_kinematics.h"
+#include "SL_common.h"
+
+#include "SL_dynamics.h"
+
+#include <unistd.h>
+
+enum weightMatrixType {
+		IDENTITY,
+		MASS_ACTUATOR,
+		MASS_CROSS_COUPLING,
+		MASS_DIAGONAL,
+		USER_DEFINED_WEIGHT,
+		ACTUATOR_SATURATION
+	};
+
+class InverseDynamics {
+public:
+	InverseDynamics(int nbDofs, int nbEndEffs);
+	virtual ~InverseDynamics();
+
+	/*!
+	* Should compute the inverse dynamics parameters (i.e. the torque projector)
+	* @param currJointState [in] current joint state
+	* @param currEndEff [in] current endeff state (with constraints)
+	* @param baseState [in] current base state
+	* @param baseOrient [in] current base orientation
+	* @return number of constraints
+	*/
+	virtual	int computeInverseDynamics(SL_Jstate *currJointState, SL_endeff *currEndEff, SL_Cstate *baseState, SL_quat *baseOrient) = 0;
+
+	/*!
+	* Compute the torques given the desired acceleration of the joints
+	* updates desAcc, desTorques, des_Mddq_h
+	* @param [in] acc desired acceleration
+	* @param torques [out] the resulting torques
+	*/
+	void computeTorques(Vector acc, Vector torques);
+
+	/*!
+	 * This function adds to desTorques the internal torque InternalTorquesProjector * S * (ddq + invM * h)
+	 * @param torques returns the resulting desired torques
+	 */
+	virtual void addGRFOptimalInternalTorques(Vector torques);
+
+	/*!
+	* Computes the GRF using desAcc, des_Mddq_h and torques
+	* Updates this->predictedRForces
+	* @param reactionForces [out] the ground reaction forces
+	*/
+	virtual void computeReactionForces(Vector reactionForces) = 0;
+
+	/*!
+	 * Compute the GRF cost as lambdaT Jc invM JcT lambda - which is found via Gauss principle of least action
+	 * @param theoreticalCost - the cost computed with JcT lambda = M ddq + h - ST tau which is the theoretical cost given the control
+	 * @param realCost - the cost computed with lambda = SL endeff forces+moments - the real cost
+	 */
+	void getGRFCost(double *theoreticalCost, double *realCost);
+
+
+	/*!
+	* Output the constraintJacobian and its time derivative
+	* @param Jc [out] Matrix of size 6*N_ENDEFFS x N_DOFS+6
+	* @param dJc [out] Matrix of size 6*N_ENDEFFS x N_DOFS+6
+	*/
+	void getconstraintJacobian(Matrix Jc, Matrix dJc, Matrix pseudoInv, Matrix nullSpaceJc);
+
+	/*!
+	* This function changes the strategy of weighting for the ID controller
+	* @param weightType defined by the enum weightMatrixType
+	*/
+	void selectWeightStrategy(weightMatrixType weightType);
+
+	/*!
+	* This function select the weight used for the ID according to the enum
+	* @param num of the weighting strategy
+	*/
+	void updatePseudoInverseWeight();
+
+	virtual void recordVariables(char *filename) = 0;
+
+	void reset();
+
+	void enableIntTorqueControl(bool en);
+
+	double getTorqueCost(weightMatrixType type);
+
+
+	//used to compute the saturation limit cost - maximum torque allowed for an actuator
+	Vector saturationLimit;
+
+
+protected:
+	///current values of the M and C+G information (full floating base)
+	Matrix currentM;
+	Vector currentCG;
+	Matrix currentInvM;
+
+	//current state of the robot
+	SL_Jstate *currentJointState;
+	SL_endeff *currentEndEffs;
+	SL_Cstate currentBaseState;
+	SL_quat currentBaseOrient;
+
+	///the matrix used to project to torque space the full dynamics
+	Matrix torqueProjector;
+
+	///null space projector that allows one to get the internal torques. !! we compute Nw * sqrt(W)
+	Matrix internalTorquesProjector;
+
+	///joint selection matrix
+	Matrix ST;
+
+	///the constrained Jacobian and its derivative (non weighted)
+	Matrix constraintJacobian, dConstraintJacobian, prevConstraintJacobian;
+	Matrix nullSpaceProjConstraintJacobian, pseudoInvConstraintJacobian;
+
+	///the weight for computing the pseudo inverse (the torque projector)
+	Matrix pseudoInverseWeight;
+
+	///desired torque and acceleration
+	Vector desTorques, desAcc, des_Mddq_h;
+	///predicted ground reaction forces
+	Vector predictedRForces;
+
+	///the current num of constraints, the num of floating DOFS (NB_DOFS+6) and the dim of the unconstrained dynamics
+	int numConstraints, numFloatDofs, numUnconstDim, nbDofs;
+	int nbEndEffs;
+
+	///true if the jacobian is valid - used to derive dJacobian
+	bool validJacobian;
+
+	///keeps track of cost
+	double GRFTheoCost, GRFRealCost;
+
+	weightMatrixType weightType;
+
+	bool enableInternalTorqueControl;
+
+};
+
+#endif /* INVERSEDYNAMICS_H_ */

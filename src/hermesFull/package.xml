@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <name>hermes_full</name>
+  <version>1.0.0</version>
+  <description>hermes_full</description>
+  <maintainer email="aherzog@tuebingen.mpg.de">Alexander Herzog</maintainer>
+  <license>TODO</license>
+  <author email="sschaal@usc.edu">Stefan Schaal</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>xenomai_ros</build_depend>
+  <build_depend>hermes_core</build_depend>
+  <run_depend>hermes_core</run_depend>
+  
+  <export>
+  </export>
+</package>

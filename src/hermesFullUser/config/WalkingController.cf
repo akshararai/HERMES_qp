@@ -1,0 +1,19 @@
+loaded_capture_point_gains 5.0 5.0 2.0 //gains for the capture point control x y z
+unloaded_capture_point_gains 5.0 5.0 2.0
+stepping_time 3.0 //time to take one step
+stance_duration 1.0 //time in double support
+
+qp_com_weight 10000000 //weight we use for the optimization of CoM
+qp_swing_weight 1000000
+
+swing_foot_P_gains 10.0 10.0 50.0 100.0 100.0 100.0
+swing_foot_D_gains 2.0 2.0 5.0 2.0 2.0 2.0
+
+ang_mom_D_gains_ 0.1 0.1 0.1
+
+step_length = 0.12
+step_height = 0.03;
+step_width = 0.15;
+
+
+make_video 0
