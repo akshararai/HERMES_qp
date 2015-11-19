@@ -223,8 +223,8 @@ int HInvDynExample::run(){
         task_servo_time - task_start_time_ < 2. + push_dur_)
     {
       std::cout << "push : " << push_force_ << std::endl;
-      uext_sim[L_KFE].f[_Y_] = .5*push_force_;
-      //uext_sim[R_HAA].f[_X	_] = .5*push_force_;
+      uext_sim[L_HAA].f[_Y_] = .5*push_force_;
+      uext_sim[R_HAA].f[_Y_] = .5*push_force_;
       sendUextSim();
     }
   }

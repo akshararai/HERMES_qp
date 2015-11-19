@@ -18,7 +18,7 @@
 #include "GeometryUtils.h"
 #include "SL_common.h"
 
-#define N_ENDEFFS_2 3
+#define N_ENDEFFS_2 1
 
 namespace floating_base_utilities
 {

@@ -41,6 +41,8 @@ private:
 #else
   static const int num_variables_unoptimized_ = N_DOFS+6 + 6*N_ENDEFFS;
 #endif
+std::string name_;
+
 
 public:
   HierarchInverseDynamics(KinematicsEigen& kinematics,

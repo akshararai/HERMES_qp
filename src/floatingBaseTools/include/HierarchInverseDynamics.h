@@ -70,6 +70,33 @@ void HierarchInverseDynamics< Max_Ineq_Rows, Max_Eq_Rows>::initialize()
   addVarToCollect((char *)&qp_dur_[4], "qpsolve_dur_4","ms",DOUBLE,TRUE);
   addVarToCollect((char *)&n_solved_ranks_, "n_solved_ranks","-",DOUBLE,TRUE);
 
+  name_ = std::string("reactF");
+  std::stringstream ss;
+  std::vector<std::string> var_names;
+  std::cout << "Adding Variables to Data Collection:" << std::endl;
+  char tmp_c_str[50];
+
+  for(int i = 0; i < N_ENDEFFS; i++)
+  {
+    for (int j = 0; j<6 ; j++)
+    {
+      ss << name_ << "_end_" << i;
+      ss << "_dim_" << j;
+      var_names.push_back(std::string());
+      ss >> var_names.back();
+      ss.clear();
+      }
+  }
+  for(int i = 0; i < N_ENDEFFS; i++)
+  {
+    for (int j = 0; j<6 ; j++)
+    {
+      std::strcpy(tmp_c_str,var_names[i*6+j].c_str());
+      addVarToCollect((char*)&admis_reaction_frcs_[i+1][j], tmp_c_str, "-", DOUBLE, TRUE);
+      std::cout << tmp_c_str << std::endl;
+    }
+  }
+
   if(!ConfigUtils::setVarFromConfig(hinvdyn_log_problems_, "HINVDYN_LOG_PROBLEMS",
       std::string("config/") + std::string(config_file_)))
   {
@@ -420,6 +447,9 @@ bool HierarchInverseDynamics< Max_Ineq_Rows, Max_Eq_Rows>::solve()
         admis_reaction_frcs_[i+1][j] = 0.0;
       }
     }
+   
+    
+
 
   //notify sub-composers of new solution
   for (unsigned int i = 0; i < sub_cost_composers_.size(); ++i)
