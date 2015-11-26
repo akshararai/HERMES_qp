@@ -5,7 +5,9 @@ void add_biped_locomotion_lib_tasks()
   extern void add_walking_task();
   extern void add_balance_task();
   extern void add_zero_torque_task();
-  extern void add_torque_sine_task();                                                                                                    
+  extern void add_torque_sine_task();  
+  extern void add_wholebody_task();
+                                                                         
   extern void add_gravity_compensation_task();                                                                                           
   extern void add_mass_estimation();                                                                                                     
   extern void add_cog_force_utils();                                                                                                     
@@ -19,7 +21,9 @@ void add_biped_locomotion_lib_tasks()
   add_walking_task();
   add_balance_task();
   add_zero_torque_task();
-  add_torque_sine_task();                                                                                                    
+  add_torque_sine_task();      
+  add_wholebody_task();
+                                                                                             
   add_gravity_compensation_task();                                                                                           
   add_mass_estimation();                                                                                                     
   add_cog_force_utils();                                                                                                     

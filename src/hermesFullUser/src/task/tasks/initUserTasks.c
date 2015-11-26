@@ -54,6 +54,11 @@ initUserTasks(void)
   //add_calibrate_base_state_estimation_task();
   //freezeBase(TRUE);
 
+
+  // Alex added here new task (I think it is not like this, I can add new files in biped_locomotion_lib_tasks)
+  //extern void add_wholebody_task();
+  //add_wholebody_task();
+
   // use the true base state from the simulation servo
   if(!real_robot_flag)
     toggleSimulatedBaseState();

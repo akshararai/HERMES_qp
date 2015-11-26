@@ -54,6 +54,7 @@ FOREACH(ROB ${floating_base_tools_ROBOTS})
     src/task/controllers/walking_controller.cpp
     src/task/tasks/zero_torque_task.cpp
     src/task/tasks/torque_sine_task.cpp
+    src/task/tasks/wholebody_task.cpp
     src/task/tasks/mass_estimation.cpp
     src/task/tasks/gravity_compensation.cpp
     src/task/tasks/fb_sine_task.cpp
