@@ -493,7 +493,6 @@ saveData(void)
  ******************************************************************************/
 void
 scd(void)
-
 {
   if (!collect_data_initialized) {
     printf("Collect data is not initialized\n");
@@ -544,9 +543,7 @@ startCollectData()
 
 }
 
-void
-scds(void)
-
+void scds(void)
 {
   double last_draw_time;
 
