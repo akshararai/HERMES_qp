@@ -165,7 +165,7 @@ static int run_wholebody_task()
 //    joint_des_state[R_AFE].th   =  joint_default_state[R_AFE].th + 0.1;
 
 
-    printf("initial joint angle [L_AFE]: %.3f \n", joint_default_state[L_AFE].th);
+//    printf("initial joint angle [L_AFE]: %.3f \n", joint_default_state[L_AFE].th);
 
 
     real_time += 1.0/double(task_servo_rate);

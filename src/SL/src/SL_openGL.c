@@ -498,7 +498,7 @@ keyboard(unsigned char key, int x, int y)
     phi += 0.05;
     if (phi >= PI) {
       phi = PI - 0.001;
-      printf("Camera cannot turn higer\n");
+      printf("Camera cannot turn higher\n");
     }
     ptr->eye[_Z_] = distance*cos(phi) + ptr->center[_Z_];
     ptr->eye[_Y_] = ptr->center[_Y_] + distance*sin(phi)*sin(theta);
@@ -3303,14 +3303,20 @@ displayCoord(void)
   if (!coordDisplay || coordDisplayFlagsLinks == NULL)
     return;
   
-  for (i=0; i<=n_links; ++i)  {
+  for (i=0; i<=n_links; ++i)
+  {
     if (coordDisplayFlagsLinks[i])
-      drawCoordSystem(coordAxisLength, Alink_sim[i],link_names[i]);
+    {
+//      drawCoordSystem(coordAxisLength, Alink_sim[i],link_names[i]);
+    }
   }
 
-  for (i=0; i<=n_dofs; ++i)  {
+  for (i=0; i<=n_dofs; ++i)
+  {
     if (coordDisplayFlagsDOFs[i])
-      drawCoordSystem(coordAxisLength, Adof_sim[i],joint_names[i]);
+    {
+//      drawCoordSystem(coordAxisLength, Adof_sim[i],joint_names[i]);
+    }
   }
 
 
