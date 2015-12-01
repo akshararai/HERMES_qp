@@ -1,3 +1,5 @@
+#include "mytest.h"
+
 // SL system headers
 #include "SL_system_headers.h"
 
@@ -115,7 +117,7 @@ static int init_wholebody_task()
 
     for(int i=1; i<=n_dofs; ++i)
     {
-        printf("initial joint angle [%d]: %.3f \n", i, joint_default_state[i].th);
+//        printf("initial joint angle [%d]: %.3f \n", i, joint_default_state[i].th);
     }
 
     // start save data, in SL/src/SL_collect_data.c
@@ -157,7 +159,13 @@ static int run_wholebody_task()
 //        joint_des_state[i].th   =   init_joint_state[i].th;
 //        joint_des_state[i].thd  =   init_joint_state[i].thd;
 //        joint_des_state[i].uff =0.0;    // desired_torque;
+        joint_des_state[i].th   =  joint_default_state[i].th;
     }
+//    joint_des_state[L_AFE].th   =  joint_default_state[L_AFE].th + 0.1;
+//    joint_des_state[R_AFE].th   =  joint_default_state[R_AFE].th + 0.1;
+
+
+    printf("initial joint angle [L_AFE]: %.3f \n", joint_default_state[L_AFE].th);
 
 
     real_time += 1.0/double(task_servo_rate);

@@ -14,7 +14,7 @@ void add_biped_locomotion_lib_tasks()
 //  extern void add_cog_force_utils();
 //  extern void add_fb_sine_task();
 //  extern void add_joint_calibration_task();
-  extern void add_hinvdyn_example_task();
+//  extern void add_hinvdyn_example_task();
 
 
 
@@ -31,5 +31,5 @@ void add_biped_locomotion_lib_tasks()
 //  add_cog_force_utils();
 //  add_fb_sine_task();
 //  add_joint_calibration_task();
-  add_hinvdyn_example_task();
+//  add_hinvdyn_example_task();
 }
