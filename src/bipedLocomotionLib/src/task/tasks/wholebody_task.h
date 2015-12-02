@@ -15,6 +15,8 @@ using namespace std;
 double task_start_time;
 double real_time = 0.0;
 double transition_time = 2.0;
+double push_time = 2.0;
+int no_loop=0;
 
 
 // config file

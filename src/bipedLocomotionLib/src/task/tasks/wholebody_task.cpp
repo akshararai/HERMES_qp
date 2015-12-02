@@ -70,15 +70,20 @@ static int init_wholebody_task()
 // main function that runs
 static int run_wholebody_task()
 {
-    cout << "controller time " << real_time << endl;
-    // simulate a push
+    double roundup = ceil(real_time);
+    if ( abs(real_time-roundup)<= 0.5*1.0/double(task_servo_rate) )
+    {
+        cout << "time: "<<real_time<<endl;
+    }
+//    cout << "controller time " << real_time << endl;
 
+//    cout << "real_robot_flag : " << real_robot_flag << endl;
     // simulate a push
     if(!real_robot_flag)
     {
-        if( real_time >= 2. &&real_time < 2.0 + push_duration_)
+        if( real_time >= push_time &&real_time <= push_time + push_duration_)
         {
-            cout << "push : " << push_force_ << endl;
+//            cout << "push : " << push_force_ << " N" << endl;
             uext_sim[L_HAA].f[_Y_] = .5*push_force_;
             uext_sim[R_HAA].f[_Y_] = .5*push_force_;
             sendUextSim();
@@ -94,7 +99,8 @@ static int run_wholebody_task()
         joint_des_state[i].th   =  joint_default_state[i].th;
     }
 
-    real_time += 1.0/double(task_servo_rate);
+    no_loop++;
+    real_time = no_loop*1.0/double(task_servo_rate);
 
     return TRUE;
 }
