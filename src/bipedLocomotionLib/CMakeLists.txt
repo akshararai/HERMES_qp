@@ -70,7 +70,7 @@ FOREACH(ROB ${floating_base_tools_ROBOTS})
     # mock up a new task
 	src/task/controllers/mytest.cpp
     src/task/tasks/wholebody_task.cpp
-	#src/task/tasks/mytest_task.cpp	
+	src/task/tasks/mytest_task.cpp	
   )
   target_link_libraries(biped_locomotion_lib_${ROB} 
     ${ROB}

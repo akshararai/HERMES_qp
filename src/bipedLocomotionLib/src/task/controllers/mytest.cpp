@@ -5,7 +5,7 @@
  *********************************************************************
  \remarks      ...
 
- \file         HInvDynExample.cpp
+ \file         mytest.cpp
 
  \author       Alexander Herzog
  \date         Aug 18, 2014
@@ -18,7 +18,7 @@ using namespace floating_base_utilities;
 
 namespace hierarchical_inverse_dynamics_example {
 
-HInvDynExample::HInvDynExample() : config_file_("HInvDynExampleConfig.cf"),
+mytest::mytest() : config_file_("mytestConfig.cf"),
     contact_helper_(config_file_), hinvdyn_solver_(kinematics_,
     momentum_helper_, contact_helper_, endeff_kinematics_), dyn_eqs_(hinvdyn_solver_),
     cog_ctrl_(hinvdyn_solver_), left_foot_constr_(hinvdyn_solver_),
@@ -160,7 +160,7 @@ HInvDynExample::HInvDynExample() : config_file_("HInvDynExampleConfig.cf"),
   }
 }
 
-int HInvDynExample::run(){
+int mytest::run(){
 
   // update our helpers
   kinematics_.update(joint_state, base_state, base_orient,

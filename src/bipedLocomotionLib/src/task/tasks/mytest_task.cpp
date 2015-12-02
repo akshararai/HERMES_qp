@@ -17,34 +17,34 @@
 #include "SL_tasks.h"
 
 boost::shared_ptr<hierarchical_inverse_dynamics_example::
-    HInvDynExample> hinvdyn_ctrl_;
+    mytest> mytest_control;
 
 extern "C"
 {
 /* global functions */
-void add_hinvdyn_example_task(void);
+void add_mytest_task(void);
 
 /* local functions */
-static int init_hinvdyn_example_task(void);
-static int run_hinvdyn_example_task(void);
-static int change_hinvdyn_example_task(void);
+static int init_mytest_task(void);
+static int run_mytest_task(void);
+static int change_mytest_task(void);
 }
 
-void add_hinvdyn_example_task(void){
-  addTask("HInvDyn Example", init_hinvdyn_example_task, run_hinvdyn_example_task, change_hinvdyn_example_task);
+void add_mytest_task(void){
+  addTask("My Test", init_mytest_task, run_mytest_task, change_mytest_task);
 }
 
-int change_hinvdyn_example_task(){
+int change_mytest_task(){
   return TRUE;
 }
 
-int init_hinvdyn_example_task(){
-  hinvdyn_ctrl_.reset(new hierarchical_inverse_dynamics_example::HInvDynExample());
+int init_mytest_task(){
+  mytest_control.reset(new hierarchical_inverse_dynamics_example::mytest());
   return TRUE;
 }
 
-int run_hinvdyn_example_task(){
-  return hinvdyn_ctrl_->run();
+int run_mytest_task(){
+  return mytest_control->run();
 }
 
 

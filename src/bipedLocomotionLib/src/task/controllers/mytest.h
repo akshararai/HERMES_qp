@@ -5,7 +5,7 @@
  *********************************************************************
  \remarks      ...
 
- \file         HInvDynExample.h
+ \file         mytest.h
 
  \author       Alexander Herzog
  \date         Aug 18, 2014
@@ -32,10 +32,10 @@
 
 namespace hierarchical_inverse_dynamics_example {
 
-class HInvDynExample {
+class mytest {
  public:
-  HInvDynExample();
-  virtual ~HInvDynExample(){};
+  mytest();
+  virtual ~mytest(){};
 
   int run();
 
