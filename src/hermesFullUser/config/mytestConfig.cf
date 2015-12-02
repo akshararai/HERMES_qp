@@ -1,0 +1,3 @@
+/* some simulation parameters */
+push_force 300.
+push_duration 0.4
