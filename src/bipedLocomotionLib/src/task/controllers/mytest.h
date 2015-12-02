@@ -20,6 +20,11 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 
+/* I try to add headers by myself one by one but doesnt work out*/
+//#include "SL_user.h"
+//#include "SL_collect_data.h"
+//#include "SL_integrate.h"
+
 #include "DynamicsConstraint.h"
 #include "CartesianPositionCtrl.h"
 #include "CartesianForceCtrl.h"
@@ -31,7 +36,9 @@
 #include "FloatingBaseKinematics.h"
 #include "FootContactHandlerHermes.h"
 
-namespace hierarchical_inverse_dynamics_example
+using namespace std;
+
+namespace wholebody_demo
 {
     class mytest {
      public:
@@ -57,10 +64,15 @@ namespace hierarchical_inverse_dynamics_example
     //  Eigen::Matrix<double, N_DOFS+6, 1> joint_ctrl_weight_;
 
       // parameters for the push simulation
-      double push_force, push_duration;
+      double push_force, push_duration, push_time;
 
       // some info about task
-      double task_start_time_;
+      double task_start_time;
+      double real_time;
+      int Num_loop;
+
+
+      /* vectors */
       Eigen::Matrix<double, N_DOFS,1> init_joint_state_uff_, init_joint_state_th_, init_joint_state_thd_, init_joint_state_thdd_;
     };
 

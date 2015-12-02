@@ -99,8 +99,8 @@ static int run_wholebody_task()
         joint_des_state[i].th   =  joint_default_state[i].th;
     }
 
-    no_loop++;
-    real_time = no_loop*1.0/double(task_servo_rate);
+    Num_loop++;
+    real_time = Num_loop*1.0/double(task_servo_rate);
 
     return TRUE;
 }

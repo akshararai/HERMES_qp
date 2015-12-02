@@ -16,8 +16,7 @@
 
 #include "SL_tasks.h"
 
-boost::shared_ptr<hierarchical_inverse_dynamics_example::
-    mytest> mytest_control;
+boost::shared_ptr<wholebody_demo::mytest> mytest_control;
 
 extern "C"
 {
@@ -39,7 +38,7 @@ int change_mytest_task(){
 }
 
 int init_mytest_task(){
-  mytest_control.reset(new hierarchical_inverse_dynamics_example::mytest());
+  mytest_control.reset(new wholebody_demo::mytest());
   return TRUE;
 }
 

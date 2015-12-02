@@ -17,74 +17,42 @@
 
 using namespace floating_base_utilities;
 
-namespace hierarchical_inverse_dynamics_example {
-
-mytest::mytest() :
-    config_file_("mytestConfig.cf")
+namespace wholebody_demo
 {
-  // stop data collection to avoid crashes
-  stopcd();
-  freezeBase(false);
+mytest::mytest() :
+    config_file_("mytestConfig.cf"),
+    task_start_time(0.0),
+    real_time(0.0),
+    push_time(2.0),
+    Num_loop(0)
+{
+    // stop data collection to avoid crashes
+    stopcd();
+    freezeBase(false);
 
-  for (int i = 1; i < N_DOFS; ++i)
-  {
-    std::cout << "joint_names " << joint_names[i] << " " << i << std::endl;
-  }
-
-
-  // read simulation parameters
-  if(!read_parameter_pool_double(config_file_.c_str(),"push_force",&push_force))
-    assert(false && "reading parameter push_force failed");
-  if(!read_parameter_pool_double(config_file_.c_str(),"push_dur",&push_duration))
-    assert(false && "reading parameter push_dur failed");
-/*
-  // read ranks from config file
-  if(!read_parameter_pool_int(config_file_.c_str(),"foot_constr_rank",&foot_constr_rank_))
-    assert(false && "reading parameter foot_constr_rank failed");
-  if(!read_parameter_pool_int(config_file_.c_str(),"joint_ctrl_rank",&joint_ctrl_rank_))
-    assert(false && "reading parameter joint_ctrl_rank failed");
-  if(!read_parameter_pool_int(config_file_.c_str(),"cog_ctrl_rank",&cog_ctrl_rank_))
-    assert(false && "reading parameter cog_ctrl_rank failed");
-  //if(!read_parameter_pool_int(config_file_.c_str(),"frc_reg_rank",&frc_reg_rank_))
-    assert(false && "reading parameter frc_reg_rank failed");
-*/
-  // read PD gains from config file
-//  double buffer[N_DOFS+6+1];
-//  if(!read_parameter_pool_double_array(config_file_.c_str(),"COG_P_GAINS",3,buffer))
-//    assert(false && "reading parameter COG_P_GAINS failed");
-//  cog_p_gains_ = Eigen::Map<Eigen::Vector3d>(&buffer[1]);
-//  if(!read_parameter_pool_double_array(config_file_.c_str(),"COG_D_GAINS",3,buffer))
-//    assert(false && "reading parameter COG_D_GAINS failed");
-//  cog_d_gains_ = Eigen::Map<Eigen::Vector3d>(&buffer[1]);
-//  if(!read_parameter_pool_double_array(config_file_.c_str(),"POSTURE_P_GAINS",N_DOFS+6,buffer))
-//    assert(false && "reading parameter POSTURE_P_GAINS failed");
-//  posture_p_gains_ = Eigen::Map<Eigen::Matrix<double, N_DOFS+6,1> >(&buffer[1]);
-//  if(!read_parameter_pool_double_array(config_file_.c_str(),"POSTURE_D_GAINS",N_DOFS+6,buffer))
-//    assert(false && "reading parameter POSTURE_D_GAINS failed");
-//  posture_d_gains_ = Eigen::Map<Eigen::Matrix<double, N_DOFS+6,1> >(&buffer[1]);
-
-//  // read weights from config file
-//  if(!read_parameter_pool_double_array(config_file_.c_str(),"FOOT_CONSTR_WEIGHT", 6, buffer))
-//      assert(false && "reading parameter FOOT_CONSTR_WEIGHT failed");
-//  foot_constr_weight_ = Eigen::Map<Eigen::Matrix<double, 6,1> >(&buffer[1]);
-//  if(!read_parameter_pool_double_array(config_file_.c_str(),"COG_CTRL_WEIGHT", 6, buffer))
-//      assert(false && "reading parameter COG_CTRL_WEIGHT failed");
-//  cog_ctrl_weight_ = Eigen::Map<Eigen::Matrix<double, 6,1> >(&buffer[1]);
-//  if(!read_parameter_pool_double_array(config_file_.c_str(),"FRC_REG_WEIGHT", 6, buffer))
-//      assert(false && "reading parameter FRC_REG_WEIGHT failed");
-//  frc_reg_weight_ = Eigen::Map<Eigen::Matrix<double, 6,1> >(&buffer[1]);
-//  if(!read_parameter_pool_double_array(config_file_.c_str(),"JOINT_CTRL_WEIGHT", N_DOFS+6, buffer))
-//      assert(false && "reading parameter JOINT_CTRL_WEIGHT failed");
-//  joint_ctrl_weight_ = Eigen::Map<Eigen::Matrix<double, N_DOFS+6,1> >(&buffer[1]);
+    for (int i = 1; i < N_DOFS; ++i)
+    {
+        cout << "joint_names " << joint_names[i] << " " << i << endl;
+    }
 
 
-  // update SL data collection and start collecting data
-  updateDataCollectScript();
-  scd();
+    // read simulation parameters
+    if(!read_parameter_pool_double(config_file_.c_str(),"push_force",&push_force))
+        assert(false && "reading parameter push_force failed");
+    if(!read_parameter_pool_double(config_file_.c_str(),"push_duration",&push_duration))
+        assert(false && "reading parameter push_duration failed");
 
-  std::cout << "Initialization done." << std::endl;
+    // update SL data collection and start collecting data
+    updateDataCollectScript();
+    scd();
 
-  task_start_time_ = task_servo_time;
+    cout << "Initialization done." << endl;
+
+    cout << "N_DOFS: " << N_DOFS << endl;
+    cout << "n_dofs: " << n_dofs << endl;
+
+
+//  task_start_time = task_servo_time;
 }
 
 mytest::~mytest()
@@ -93,45 +61,60 @@ mytest::~mytest()
 
 int mytest::run()
 {
-
-  std::cout << "controller time " << task_servo_time - task_start_time_ << std::endl;
-  // simulate a push
-  if(!real_robot_flag){
-    if(task_servo_time - task_start_time_ >= 2. &&
-        task_servo_time - task_start_time_ < 2. + push_duration)
+//    real_time = task_servo_time - task_start_time;
+    double roundup = ceil(real_time);
+    if ( abs(real_time-roundup)<= 1.0/double(task_servo_rate) ) // task_servo_rate=1000
     {
-      std::cout << "push : " << push_force << std::endl;
-      uext_sim[L_HAA].f[_Y_] = .5*push_force;
-      uext_sim[R_HAA].f[_Y_] = .5*push_force;
-      sendUextSim();
+        cout << "time: "<<real_time<<endl;
     }
-  }
 
-  // send optimum torques to robot
-  // here we transition from the previous controller
-  double transition = std::min(1., task_servo_time - task_start_time_);
-  //std::cout << "transition " << transition << std::endl;
+    // simulate a push
+    if(!real_robot_flag)
+    {
+        if( real_time >= push_time &&real_time <= push_time + 1.0/double(task_servo_rate))
+        {
+            cout << "push: " << push_force << "N\tDuration: "<< push_duration <<" s" << endl;
+        }
 
-  for(int i=1; i<=N_DOFS; ++i)
-  {
- 
-    if(i>=1 && i<=14)
-      continue;
-    if(i>=32)
-      continue; 
-    
-//    joint_des_state[i].uff =  hinvdyn_solver_.admis_torques_[i-1];
-//    joint_des_state[i].thdd = (1.-transition)*init_joint_state_thdd_[i-1];
-    // SL provides a joint PD controller. The following cancels it out,
-    // because we would like to do pure feed-forward control
-    joint_des_state[i].th = joint_default_state[i].th;
-    //joint_des_state[B_TFE].th = (1.-transition)*init_joint_state_th_[B_TFE-1] + transition*joint_state[B_TFE].th;
-    joint_des_state[i].thd = joint_default_state[i].thd;
-    //std::cout << "DOF " << joint_names[i] << " hinv t " << hinvdyn_solver_.admis_torques_[i-1] << std::endl;
+        if( real_time >= push_time &&real_time <= push_time + push_duration)
+        {
+//            cout << "push : " << push_force << endl;
+            uext_sim[L_HAA].f[_Y_] = .5*push_force;
+            uext_sim[R_HAA].f[_Y_] = .5*push_force;
+            sendUextSim();
+        }
+    }
 
-  }
+    // send optimum torques to robot
+    // do some transition later when needed
+    // here we transition from the previous controller
+//    double transition = min(1., task_servo_time - task_start_time_);
+    //cout << "transition " << transition << endl;
 
-  return TRUE;
+
+    /* servo control */
+    for(int i=1; i<=N_DOFS; ++i)
+    {
+        if(i>=1 && i<=14)
+            continue;
+        if(i>=32)
+            continue;
+
+        //    joint_des_state[i].uff =  hinvdyn_solver_.admis_torques_[i-1];
+        //    joint_des_state[i].thdd = (1.-transition)*init_joint_state_thdd_[i-1];
+        // SL provides a joint PD controller. The following cancels it out,
+        // because we would like to do pure feed-forward control
+        joint_des_state[i].th = joint_default_state[i].th;
+        //joint_des_state[B_TFE].th = (1.-transition)*init_joint_state_th_[B_TFE-1] + transition*joint_state[B_TFE].th;
+        joint_des_state[i].thd = joint_default_state[i].thd;
+        //cout << "DOF " << joint_names[i] << " hinv t " << hinvdyn_solver_.admis_torques_[i-1] << endl;
+
+    }
+
+    real_time = Num_loop*1.0/double(task_servo_rate);
+    Num_loop++;
+
+    return TRUE;
 }
 
 }  // Namespace
