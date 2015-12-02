@@ -1,4 +1,8 @@
-#include "mytest.h"
+/*You need to add your headers here before the SL headers*/
+//#include "mytest.h"
+
+#include "wholebody_task.h"
+
 
 // SL system headers
 #include "SL_system_headers.h"
@@ -13,24 +17,6 @@
 #include "SL_collect_data.h"
 #include "SL_shared_memory.h"
 #include "SL_man.h"
-//#include <Eigen/Eigen>
-//#include "wholebody_task.h"
-
-
-/* local variables */
-static double real_time = 0.0;
-static double transition_time = 2.0;
-
-// I will resuse these parameter inputs later
-static double freq = 0.1;
-static double amp = 1.0;
-static double offset = 0.0;
-static int jid = 0;
-static int step_tests = 0;
-
-/* newly added */
-double task_start_time;
-//Eigen::Matrix<double, N_DOFS,1> init_joint_state_uff, init_joint_state_th, init_joint_state_thd, init_joint_state_thdd;
 
 
 /* functions */
@@ -54,66 +40,21 @@ void add_wholebody_task()
 
 static int init_wholebody_task()
 {
-    int j, i;
-    int ans;
-//    static int firsttime = TRUE;
-
-//    if (firsttime){
-//    firsttime = FALSE;
-//    //    freq = 0.1; // frequency
-//    //    amp  = 0.5; // amplitude
-//    }
-
-    // defined in SL/include/SL_tasks.h
-    // get_int(const char *comment, int defaultvalue, int *value)
-//    get_int("Do step tests?", step_tests, &step_tests);
-//    if(step_tests)
-//    {
-//        get_int("Torque step which joint?",jid,&jid);
-//        get_double("Step amplitude [Nm]", amp,&amp);
-//        get_double("Step offset [Nm]", offset, &offset);
-//        get_double("Step frequency [Hz]",freq,&freq);
-
-
-//        if (jid < 1 || jid > n_dofs || amp > 10.0 || amp < -10.0 || freq < 0.1 || freq > 1.0)
-//            return FALSE;
-//        printf("running a %f Nm step test with offset %f for joint %s\n", amp, offset, freq, joint_names[jid]);
-//    }
-//    else
-//    {
-//        get_int("Torque sine which joint?",jid,&jid);
-//        get_double("Sine amplitude [Nm]",amp,&amp);
-//        get_double("Sine frequency [Hz]",freq,&freq);
-//        get_double("Sine offset [Nm]", offset, &offset);
-
-//        real_time = 0.0;
-
-//        if (jid < 1 || jid > n_dofs || amp > 10.0 || amp < -10.0 || freq < 0.1 || freq > 40.0)
-//            return FALSE;
-
-//        printf("running a %f Nm sine offset at %f at %f Hz for joint %s\n", amp, offset, freq, joint_names[jid]);
-//    }
-
-    // ready to go
-    ans = 1;
-//    while (ans == 999)
-//    {
-//        if (!get_int("Enter 1 to start or anthing else to abort ...",ans,&ans))
-//            return FALSE;
-//    }
-
-    // only go when user really types the right thing
-    if (ans != 1)
-        return FALSE;
-
-
 //    task_start_time = task_servo_time;
-    for(int i=1; i<=n_dofs; ++i){
+//    for(int i=1; i<=n_dofs; ++i){
 //      init_joint_state_uff[i-1] = joint_default_state[i].uff;
 //      init_joint_state_th[i-1] = 0.0;
 //      init_joint_state_thd[i-1] = 0.0;
 //      init_joint_state_thdd[i-1] = 0.0;
-    }
+//    }
+
+    config_file_="mytestConfig.cf";
+//    contact_helper_(config_file_);
+//    // read simulation parameters
+//    if(!read_parameter_pool_double(config_file_.c_str(),"push_force",&push_force_))
+//      assert(false && "reading parameter push_force failed");
+//    if(!read_parameter_pool_double(config_file_.c_str(),"push_dur",&push_duration_))
+//      assert(false && "reading parameter push_dur failed");
 
     for(int i=1; i<=n_dofs; ++i)
     {
@@ -129,31 +70,22 @@ static int init_wholebody_task()
 // main function that runs
 static int run_wholebody_task()
 {
-//    static double desired_torque = offset;
-//    if(step_tests)
-//    {
-//        static double running_time = 0.0;
-//        static double sign = 1.0;
-//    if(running_time >1/freq)
-//    {
-//        desired_torque  = offset + sign*amp;
-//        sign *=-1.0;
-//        running_time = 0.0;
-//    }
-//    running_time += 1.0/double(task_servo_rate);
-//    }
-//    else
-//    {
-//        //transition for 2 seconds
-//        double mult = 0.0;
-//        if(real_time < transition_time)
-//            mult = real_time/transition_time;
-//        else
-//            mult = 1.0;
-//        desired_torque = mult*(amp * sin(real_time * freq * 2 * M_PI) + offset);
-//    }
+    cout << "controller time " << real_time << endl;
+    // simulate a push
 
+    // simulate a push
+    if(!real_robot_flag)
+    {
+        if( real_time >= 2. &&real_time < 2.0 + push_duration_)
+        {
+            cout << "push : " << push_force_ << endl;
+            uext_sim[L_HAA].f[_Y_] = .5*push_force_;
+            uext_sim[R_HAA].f[_Y_] = .5*push_force_;
+            sendUextSim();
+        }
+    }
 
+    /* servo control */
     for (int i=0; i<n_dofs; i++)
     {
 //        joint_des_state[i].th   =   init_joint_state[i].th;
@@ -161,12 +93,6 @@ static int run_wholebody_task()
 //        joint_des_state[i].uff =0.0;    // desired_torque;
         joint_des_state[i].th   =  joint_default_state[i].th;
     }
-//    joint_des_state[L_AFE].th   =  joint_default_state[L_AFE].th + 0.1;
-//    joint_des_state[R_AFE].th   =  joint_default_state[R_AFE].th + 0.1;
-
-
-//    printf("initial joint angle [L_AFE]: %.3f \n", joint_default_state[L_AFE].th);
-
 
     real_time += 1.0/double(task_servo_rate);
 

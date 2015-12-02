@@ -18,7 +18,7 @@ simulation_servo_geometry	90x8-600+164
 openGL_servo_geometry		90x8-600+30
 
 main_window_geometry		80%x60%+20+20
-main_window_camera_pos		0.5 1.2 0.2
+main_window_camera_pos		0.8 1.2 0.2
 
 
 // floor checkerboard
