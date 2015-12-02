@@ -37,6 +37,9 @@
 #include "FootContactHandlerHermes.h"
 
 using namespace std;
+using namespace Eigen;
+using namespace floating_base_utilities;
+using namespace momentum_balance_control;
 
 namespace wholebody_demo
 {
@@ -49,7 +52,25 @@ namespace wholebody_demo
 
      private:
       // we will use a config file to tune parameters conveniently
-      std::string config_file_;
+      string config_file_;
+
+      // We have upper and lower torque limit constraints
+      static const int Max_Ineq_Rows = 2*N_DOFS;
+      // We will do momentum control (6 rows) and constrain
+      // the feet not to move (6 each)
+      static const int Max_Eq_Rows = 6+2*6+N_DOFS+6+2*6;
+
+      // this is to set endeffectors as un-/constrained
+      SL_endeff endeff_constraints_[N_ENDEFFS+1];
+
+      // our helper classes to construct various quanitties with eigen
+      KinematicsEigen kinematics_;
+      FloatingBaseKinematics endeff_kinematics_;
+      MomentumComputation momentum_helper_;
+      FootContactHandlerHermes contact_helper_;
+
+      // the hierarchical inverse dynamics solver and task composers
+      HierarchInverseDynamics<Max_Ineq_Rows, Max_Eq_Rows> hinvdyn_solver_;
 
       // this is for PD control
       Eigen::Vector3d cog_des_, cog_p_gains_, cog_d_gains_;

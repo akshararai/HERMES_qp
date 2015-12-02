@@ -15,8 +15,6 @@
 
 #include <mytest.h>
 
-using namespace floating_base_utilities;
-
 namespace wholebody_demo
 {
 mytest::mytest() :
@@ -24,7 +22,8 @@ mytest::mytest() :
     task_start_time(0.0),
     real_time(0.0),
     push_time(2.0),
-    Num_loop(0)
+    Num_loop(0),
+    hinvdyn_solver_(kinematics_, momentum_helper_, contact_helper_, endeff_kinematics_)
 {
     // stop data collection to avoid crashes
     stopcd();
@@ -32,8 +31,23 @@ mytest::mytest() :
 
     for (int i = 1; i < N_DOFS; ++i)
     {
-        cout << "joint_names " << joint_names[i] << " " << i << endl;
+//        cout << "joint_names " << joint_names[i] << " " << i << endl;
     }
+
+    //set the endeffector constraints for double support
+    cout << "N_ENDEFFS :  " << N_ENDEFFS << endl;
+
+    for(int i=1; i<=N_ENDEFFS; ++i)
+    {
+        endeff_constraints_[i] = endeff[i];
+        for(int j=1; j<=6; ++j)
+            endeff_constraints_[i].c[j] = 1;
+    }
+
+    // initialize our helpers
+    kinematics_.initialize(joint_state, base_state, base_orient,endeff_constraints_);
+    momentum_helper_.initialize();
+    hinvdyn_solver_.initialize();
 
 
     // read simulation parameters
@@ -50,6 +64,8 @@ mytest::mytest() :
 
     cout << "N_DOFS: " << N_DOFS << endl;
     cout << "n_dofs: " << n_dofs << endl;
+
+    cout << "COM: " << kinematics_.cog() << endl;;
 
 
 //  task_start_time = task_servo_time;
@@ -68,6 +84,12 @@ int mytest::run()
         cout << "time: "<<real_time<<endl;
     }
 
+
+    // update our helpers
+    kinematics_.update(joint_state, base_state, base_orient, endeff_constraints_);
+
+    Vector3d rcom = kinematics_.cog();
+    cout << "COM: " << rcom(1) << endl;;
     // simulate a push
     if(!real_robot_flag)
     {
