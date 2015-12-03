@@ -19,6 +19,7 @@
 #include <Eigen/Eigen>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
+//#include "ArmReflex.hpp"
 
 /* I try to add headers by myself one by one but doesnt work out*/
 //#include "SL_user.h"
@@ -36,6 +37,8 @@
 #include "FloatingBaseKinematics.h"
 #include "FootContactHandlerHermes.h"
 
+#include "ArmReflex.hpp"    // I must put my class's header here to get it compiled without conflicting with SL stuffs
+
 using namespace std;
 using namespace Eigen;
 using namespace floating_base_utilities;
@@ -47,6 +50,8 @@ namespace wholebody_demo
      public:
       mytest();
       ~mytest();
+
+      ArmReflex Arm;
 
       int run();
 
@@ -91,6 +96,8 @@ namespace wholebody_demo
       double task_start_time;
       double real_time;
       int Num_loop;
+      bool isFall;
+      double stability_margin;
 
 
       /* vectors */

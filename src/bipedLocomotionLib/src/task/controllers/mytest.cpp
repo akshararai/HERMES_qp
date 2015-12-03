@@ -23,6 +23,7 @@ mytest::mytest() :
     real_time(0.0),
     push_time(2.0),
     Num_loop(0),
+    stability_margin(0.1),
     hinvdyn_solver_(kinematics_, momentum_helper_, contact_helper_, endeff_kinematics_)
 {
     // stop data collection to avoid crashes
@@ -44,8 +45,9 @@ mytest::mytest() :
             endeff_constraints_[i].c[j] = 1;
     }
 
+
     // initialize our helpers
-    kinematics_.initialize(joint_state, base_state, base_orient,endeff_constraints_);
+    kinematics_.initialize(joint_state, base_state, base_orient, endeff_constraints_);
     momentum_helper_.initialize();
     hinvdyn_solver_.initialize();
 
@@ -68,7 +70,7 @@ mytest::mytest() :
     cout << "COM: " << kinematics_.cog() << endl;;
 
 
-//  task_start_time = task_servo_time;
+    task_start_time = task_servo_time;  // you should put this assignment in the end, coz servo time is running in paralell thread
 }
 
 mytest::~mytest()
@@ -77,25 +79,23 @@ mytest::~mytest()
 
 int mytest::run()
 {
-//    real_time = task_servo_time - task_start_time;
+    double sim_time = task_servo_time - task_start_time;
+    cout << "rt time " << real_time << "\tsim_time "<< sim_time << "\t"; // << endl;
+
+//    cout << "delta time "<< sim_time-real_time << endl;
+
     double roundup = ceil(real_time);
     if ( abs(real_time-roundup)<= 1.0/double(task_servo_rate) ) // task_servo_rate=1000
     {
-        cout << "time: "<<real_time<<endl;
+//        cout << "time: "<<real_time<<endl;
     }
 
-
-    // update our helpers
-    kinematics_.update(joint_state, base_state, base_orient, endeff_constraints_);
-
-    Vector3d rcom = kinematics_.cog();
-    cout << "COM: " << rcom(1) << endl;;
     // simulate a push
     if(!real_robot_flag)
     {
         if( real_time >= push_time &&real_time <= push_time + 1.0/double(task_servo_rate))
         {
-            cout << "push: " << push_force << "N\tDuration: "<< push_duration <<" s" << endl;
+//            cout << "push: " << push_force << "N\tDuration: "<< push_duration <<" s" << endl;
         }
 
         if( real_time >= push_time &&real_time <= push_time + push_duration)
@@ -106,6 +106,41 @@ int mytest::run()
             sendUextSim();
         }
     }
+
+
+    /* feedback */
+    // update our helpers
+    kinematics_.update(joint_state, base_state, base_orient, endeff_constraints_);
+
+    int dummy_int;  // end effector is not used yet
+    endeff_kinematics_.computeJacobians(joint_state, base_state, base_orient,
+                                        endeff_constraints_, dummy_int);
+
+    momentum_helper_.update(kinematics_);
+
+    Vector3d rcom = kinematics_.cog();
+    Vector3d drcom = momentum_helper_.getdCog();
+    double CapturePoint = rcom(1)+sqrt(1.0/9.81)*drcom(1);  // sqrt(1.0/9.81)=0.319
+//    cout << "dx "<< drcom(1) <<"\tTc*dx "<< sqrt(1.0/9.81)*drcom(1) << endl;
+//    cout << "COM: " << rcom(1) <<"\t CP: "<< CapturePoint << endl;
+//    cout << "CP: "<< CapturePoint << endl;
+
+    /* falling detection */
+
+    if (CapturePoint>stability_margin)
+    {
+        isFall=true;
+    }
+    else
+    {
+        isFall=false;
+    }
+//    cout << "fall? "<< isFall << endl;
+
+    Arm.reflex(isFall);
+    double output = Arm.armLeft.m_retraction(0);
+    cout << "fall? " << isFall << "\t";
+    cout << "reflex "<< output << endl;
 
     // send optimum torques to robot
     // do some transition later when needed
@@ -132,6 +167,12 @@ int mytest::run()
         //cout << "DOF " << joint_names[i] << " hinv t " << hinvdyn_solver_.admis_torques_[i-1] << endl;
 
     }
+
+    joint_des_state[L_SFE].th = Arm.armLeft.m_retraction(0);
+    joint_des_state[R_SFE].th = Arm.armLeft.m_retraction(0);
+
+    joint_des_state[L_SAA].th = -1.0*Arm.armLeft.m_retraction(0);
+    joint_des_state[R_SAA].th = -1.0*Arm.armLeft.m_retraction(0);
 
     real_time = Num_loop*1.0/double(task_servo_rate);
     Num_loop++;
