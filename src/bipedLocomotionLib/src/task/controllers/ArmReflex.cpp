@@ -211,7 +211,7 @@ void ArmReflex::stateMachine(bool fall_trigger)
 //        armLeft.A_retract=1.0; // pass in position is with respect to the moving arm frame
 //        armLeft.T_retract=0.4;
         double Tn=1.0*armLeft.T_retract;   // response time Tn 0.5 is half of the remain time
-        double zeta=0.9;    // damping ratio
+        double zeta=1.2;    // damping ratio
         armLeft.reflexConfig(dT, Tn, zeta);
         if (1)
         {
@@ -435,8 +435,8 @@ void ArmReflex::setReflexMode(bool flag)
 /*-------  testing code, using nested classes to better wrap up for left and right arm -----------*/
 
 ArmReflex::virtualModel::virtualModel():
-    A_retract(0.9),
-    T_retract(0.3), // here is the place you tune the response settling time
+    A_retract(0.7),
+    T_retract(0.2), // here is the place you tune the response settling time
     A_ext(0.0),
     T_ext(10.0),
     a_max_retract(3.0),

@@ -21,7 +21,7 @@ mytest::mytest() :
     config_file_("mytestConfig.cf"),
     task_start_time(0.0),
     real_time(0.0),
-    push_time(2.0),
+    push_time(5.0), // let push time start later, let robot be steady first
     Num_loop(0),
     stability_margin(0.1),
     hinvdyn_solver_(kinematics_, momentum_helper_, contact_helper_, endeff_kinematics_)
@@ -79,15 +79,19 @@ mytest::~mytest()
 
 int mytest::run()
 {
-    double sim_time = task_servo_time - task_start_time;
-    cout << "rt time " << real_time << "\tsim_time "<< sim_time << "\t"; // << endl;
+    double output, sim_time, roundup;
+
+    sim_time = task_servo_time - task_start_time;
+//    cout << "rt time " << real_time << "\tsim_time "<< sim_time << "\t"; // << endl;
 
 //    cout << "delta time "<< sim_time-real_time << endl;
 
-    double roundup = ceil(real_time);
+    roundup = ceil(real_time);
     if ( abs(real_time-roundup)<= 1.0/double(task_servo_rate) ) // task_servo_rate=1000
     {
-//        cout << "time: "<<real_time<<endl;
+        cout << "time: "<<real_time; // <<endl;
+        cout << "\tfall? " << isFall << "\t";
+        cout << "reflex "<< output << endl;
     }
 
     // simulate a push
@@ -138,9 +142,9 @@ int mytest::run()
 //    cout << "fall? "<< isFall << endl;
 
     Arm.reflex(isFall);
-    double output = Arm.armLeft.m_retraction(0);
-    cout << "fall? " << isFall << "\t";
-    cout << "reflex "<< output << endl;
+    output = Arm.armLeft.m_retraction(0);
+//    cout << "fall? " << isFall << "\t";
+//    cout << "reflex "<< output << endl;
 
     // send optimum torques to robot
     // do some transition later when needed
@@ -171,8 +175,11 @@ int mytest::run()
     joint_des_state[L_SFE].th = Arm.armLeft.m_retraction(0);
     joint_des_state[R_SFE].th = Arm.armLeft.m_retraction(0);
 
-    joint_des_state[L_SAA].th = -1.0*Arm.armLeft.m_retraction(0);
-    joint_des_state[R_SAA].th = -1.0*Arm.armLeft.m_retraction(0);
+    joint_des_state[L_SAA].th = joint_default_state[L_SAA].th-1.0*Arm.armLeft.m_retraction(0);
+    joint_des_state[R_SAA].th = joint_default_state[R_SAA].th-1.0*Arm.armLeft.m_retraction(0);
+
+    joint_des_state[L_EB].th = joint_default_state[L_EB].th+1.2*Arm.armLeft.m_retraction(0);
+    joint_des_state[R_EB].th = joint_default_state[R_EB].th+1.2*Arm.armLeft.m_retraction(0);
 
     real_time = Num_loop*1.0/double(task_servo_rate);
     Num_loop++;

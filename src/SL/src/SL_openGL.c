@@ -3239,7 +3239,7 @@ toggleCoordDisplay(void)
       get_int("Which link coordinate axes? All=0, or specific number",0,&iaux);
       if (iaux == 0) {
 	for (i=0; i<=n_links; ++i)
-	  coordDisplayFlagsLinks[i] = TRUE;
+      coordDisplayFlagsLinks[i] = TRUE;
       } else {
 	if (iaux > 0 && iaux <= n_links) {
 	  for (i=0; i<=n_links; ++i)
