@@ -30,7 +30,7 @@ static int change_mytest_task(void);
 }
 
 void add_mytest_task(void){
-  addTask("My Test", init_mytest_task, run_mytest_task, change_mytest_task);
+  addTask("Multi-Contact", init_mytest_task, run_mytest_task, change_mytest_task);
 }
 
 int change_mytest_task(){
