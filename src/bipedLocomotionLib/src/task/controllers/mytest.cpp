@@ -24,6 +24,8 @@ mytest::mytest() :
     push_time(5.0), // let push time start later, let robot be steady first
     Num_loop(0),
     stability_margin(0.1),
+    cog_kp(500.0),
+    cog_kd(50.0),
     hinvdyn_solver_(kinematics_, momentum_helper_, contact_helper_, endeff_kinematics_)
 {
     // stop data collection to avoid crashes
@@ -57,6 +59,11 @@ mytest::mytest() :
         assert(false && "reading parameter push_force failed");
     if(!read_parameter_pool_double(config_file_.c_str(),"push_duration",&push_duration))
         assert(false && "reading parameter push_duration failed");
+
+    if(!read_parameter_pool_double(config_file_.c_str(),"cog_kd",&cog_kp))
+        assert(false && "reading parameter cog_kp failed");
+    if(!read_parameter_pool_double(config_file_.c_str(),"cog_kd",&cog_kd))
+        assert(false && "reading parameter cog_kd failed");
 
     // update SL data collection and start collecting data
     updateDataCollectScript();
@@ -131,7 +138,7 @@ int mytest::run()
 
     /* falling detection */
 
-    if (CapturePoint>stability_margin)
+    if (CapturePoint>stability_margin && real_time >= push_time)
     {
         isFall=true;
     }
@@ -172,12 +179,19 @@ int mytest::run()
 
     }
 
+
+    joint_des_state[L_AFE].uff = -cog_kp*rcom(1)-cog_kd*drcom(1);
+    joint_des_state[R_AFE].uff = -cog_kp*rcom(1)-cog_kd*drcom(1);
+
+    // shoudler pitch
     joint_des_state[L_SFE].th = Arm.armLeft.m_retraction(0);
     joint_des_state[R_SFE].th = Arm.armLeft.m_retraction(0);
 
+    // shoudler roll
     joint_des_state[L_SAA].th = joint_default_state[L_SAA].th-1.0*Arm.armLeft.m_retraction(0);
     joint_des_state[R_SAA].th = joint_default_state[R_SAA].th-1.0*Arm.armLeft.m_retraction(0);
 
+    // elbow
     joint_des_state[L_EB].th = joint_default_state[L_EB].th+1.2*Arm.armLeft.m_retraction(0);
     joint_des_state[R_EB].th = joint_default_state[R_EB].th+1.2*Arm.armLeft.m_retraction(0);
 

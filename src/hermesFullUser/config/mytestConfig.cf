@@ -1,3 +1,7 @@
 /* some simulation parameters */
-push_force 20.
-push_duration 2.0
+push_force 100.0
+push_duration 0.2
+
+
+cog_kp 500.0
+cog_kd 50.0
