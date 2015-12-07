@@ -178,6 +178,9 @@ public:
         void updateHandContact(string arm_phase);
         bool stanceArmAerial(VectorXd & FT, double Fz_th);
         double getExtensionOutput(); // decide later what variables you want to get
+        void set_A_retract(double mag);
+        void set_T_retract(double time);
+
     };
     virtualModel armLeft, armRight;
 };

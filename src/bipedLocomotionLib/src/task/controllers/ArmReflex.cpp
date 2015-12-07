@@ -599,3 +599,15 @@ void ArmReflex::virtualModel::updateHandContact(string phase)
         arm_phase.at(1)=phase;
     }
 }
+
+
+void ArmReflex::virtualModel::set_A_retract(double mag)
+{
+    A_retract=mag;
+}
+
+
+void ArmReflex::virtualModel::set_T_retract(double time)
+{
+    T_retract=time;
+}

@@ -65,6 +65,15 @@ mytest::mytest() :
     if(!read_parameter_pool_double(config_file_.c_str(),"cog_kd",&cog_kd))
         assert(false && "reading parameter cog_kd failed");
 
+    if(!read_parameter_pool_double(config_file_.c_str(),"reflex_mag",&reflex_mag))
+        assert(false && "reading parameter reflex_mag failed");
+    if(!read_parameter_pool_double(config_file_.c_str(),"reflex_time",&reflex_time))
+        assert(false && "reading parameter reflex_time failed");
+
+
+    Arm.armLeft.set_A_retract(reflex_mag);
+    Arm.armLeft.set_T_retract(reflex_time);
+
     // update SL data collection and start collecting data
     updateDataCollectScript();
     scd();

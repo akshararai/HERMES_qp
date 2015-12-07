@@ -102,6 +102,9 @@ namespace wholebody_demo
       double cog_kp; //=500.0;
       double cog_kd; //=50.0;
 
+      double reflex_mag;
+      double reflex_time;
+
 
       /* vectors */
       Eigen::Matrix<double, N_DOFS,1> init_joint_state_uff_, init_joint_state_th_, init_joint_state_thd_, init_joint_state_thdd_;
