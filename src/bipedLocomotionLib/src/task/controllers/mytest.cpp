@@ -172,10 +172,7 @@ int mytest::run()
     /* servo control */
     for(int i=1; i<=N_DOFS; ++i)
     {
-        if(i>=1 && i<=14)
-            continue;
-        if(i>=32)
-            continue;
+
 
         //    joint_des_state[i].uff =  hinvdyn_solver_.admis_torques_[i-1];
         //    joint_des_state[i].thdd = (1.-transition)*init_joint_state_thdd_[i-1];
@@ -189,20 +186,20 @@ int mytest::run()
     }
 
 
-    joint_des_state[L_AFE].uff = -cog_kp*rcom(1)-cog_kd*drcom(1);
-    joint_des_state[R_AFE].uff = -cog_kp*rcom(1)-cog_kd*drcom(1);
+    //joint_des_state[L_AFE].uff = -cog_kp*rcom(1)-cog_kd*drcom(1);
+    //joint_des_state[R_AFE].uff = -cog_kp*rcom(1)-cog_kd*drcom(1);
 
     // shoudler pitch
-    joint_des_state[L_SFE].th = Arm.armLeft.m_retraction(0);
-    joint_des_state[R_SFE].th = Arm.armLeft.m_retraction(0);
+    //joint_des_state[L_SFE].th = Arm.armLeft.m_retraction(0);
+    //joint_des_state[R_SFE].th = Arm.armLeft.m_retraction(0);
 
     // shoudler roll
-    joint_des_state[L_SAA].th = joint_default_state[L_SAA].th-1.0*Arm.armLeft.m_retraction(0);
-    joint_des_state[R_SAA].th = joint_default_state[R_SAA].th-1.0*Arm.armLeft.m_retraction(0);
+    //joint_des_state[L_SAA].th = joint_default_state[L_SAA].th-1.0*Arm.armLeft.m_retraction(0);
+    //joint_des_state[R_SAA].th = joint_default_state[R_SAA].th-1.0*Arm.armLeft.m_retraction(0);
 
     // elbow
-    joint_des_state[L_EB].th = joint_default_state[L_EB].th+1.2*Arm.armLeft.m_retraction(0);
-    joint_des_state[R_EB].th = joint_default_state[R_EB].th+1.2*Arm.armLeft.m_retraction(0);
+    //joint_des_state[L_EB].th = joint_default_state[L_EB].th+1.2*Arm.armLeft.m_retraction(0);
+    //joint_des_state[R_EB].th = joint_default_state[R_EB].th+1.2*Arm.armLeft.m_retraction(0);
 
     real_time = Num_loop*1.0/double(task_servo_rate);
     Num_loop++;
