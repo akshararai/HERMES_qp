@@ -53,12 +53,8 @@ initUserTasks(void)
   //extern void add_calibrate_base_state_estimation_task();
   //add_calibrate_base_state_estimation_task();
   //freezeBase(TRUE);
-
-
-  // Alex added here new task (I think it is not like this, I can add new files in biped_locomotion_lib_tasks)
-  //extern void add_wholebody_task();
-  //add_wholebody_task();
-
+extern void add_zero_task();
+add_zero_task();
   // use the true base state from the simulation servo
   if(!real_robot_flag)
     toggleSimulatedBaseState();
@@ -72,4 +68,9 @@ initUserTasks(void)
   extern void add_ati_sensor();
   add_ati_sensor();
 #endif
+
+//#ifdef USE_IMU_SENSOR
+//  extern void add_imu_sensor();
+ // add_imu_sensor();
+//#endif
 }

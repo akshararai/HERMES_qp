@@ -23,7 +23,7 @@ mytest::mytest() :
     real_time(0.0),
     push_time(5.0), // let push time start later, let robot be steady first
     Num_loop(0),
-    stability_margin(0.1),
+    stability_margin(0.10),
     cog_kp(500.0),
     cog_kd(50.0),
     hinvdyn_solver_(kinematics_, momentum_helper_, contact_helper_, endeff_kinematics_)
@@ -70,13 +70,26 @@ mytest::mytest() :
     if(!read_parameter_pool_double(config_file_.c_str(),"reflex_time",&reflex_time))
         assert(false && "reading parameter reflex_time failed");
 
+    if(!read_parameter_pool_double(config_file_.c_str(),"stability_margin",&stability_margin))
+        assert(false && "reading parameter stability_margin failed");    
+
+    joint_init_state.resize(N_DOFS);
+
+
+    for(int i=0; i<=N_DOFS-1; i++)  {
+        joint_init_state(i) = joint_des_state[i+1].th;
+    }
+
 
     Arm.armLeft.set_A_retract(reflex_mag);
     Arm.armLeft.set_T_retract(reflex_time);
 
+    rcom_init = kinematics_.cog();
+
     // update SL data collection and start collecting data
     updateDataCollectScript();
     scd();
+
 
     cout << "Initialization done." << endl;
 
@@ -84,6 +97,15 @@ mytest::mytest() :
     cout << "n_dofs: " << n_dofs << endl;
 
     cout << "COM: " << kinematics_.cog() << endl;;
+
+    addVarToCollect((char *)&(rcom[0]), "cog_x","m",DOUBLE,TRUE);
+    addVarToCollect((char *)&(rcom[1]), "cog_y","m",DOUBLE,TRUE);
+    addVarToCollect((char *)&(rcom[2]), "cog_z","m",DOUBLE,TRUE);
+    addVarToCollect((char *)&(drcom[0]), "cog_dx","m/s",DOUBLE,TRUE);
+    addVarToCollect((char *)&(drcom[1]), "cog_dy","m/s",DOUBLE,TRUE);
+    addVarToCollect((char *)&(drcom[2]), "cog_dz","m/s",DOUBLE,TRUE);
+    addVarToCollect((char *)&(CapturePoint), "Capture_point","m",DOUBLE,TRUE);
+    addVarToCollect((char *)&(output), "output","xx",DOUBLE,TRUE);
 
 
     task_start_time = task_servo_time;  // you should put this assignment in the end, coz servo time is running in paralell thread
@@ -95,7 +117,7 @@ mytest::~mytest()
 
 int mytest::run()
 {
-    double output, sim_time, roundup;
+    double sim_time, roundup;
 
     sim_time = task_servo_time - task_start_time;
 //    cout << "rt time " << real_time << "\tsim_time "<< sim_time << "\t"; // << endl;
@@ -105,9 +127,9 @@ int mytest::run()
     roundup = ceil(real_time);
     if ( abs(real_time-roundup)<= 1.0/double(task_servo_rate) ) // task_servo_rate=1000
     {
-        cout << "time: "<<real_time; // <<endl;
-        cout << "\tfall? " << isFall << "\t";
-        cout << "reflex "<< output << endl;
+        //cout << "time: "<<real_time; // <<endl;
+        //cout << "\tfall? " << isFall << "\t";
+        //cout << "reflex "<< output << endl;
     }
 
     // simulate a push
@@ -138,9 +160,9 @@ int mytest::run()
 
     momentum_helper_.update(kinematics_);
 
-    Vector3d rcom = kinematics_.cog();
-    Vector3d drcom = momentum_helper_.getdCog();
-    double CapturePoint = rcom(1)+sqrt(1.0/9.81)*drcom(1);  // sqrt(1.0/9.81)=0.319
+    rcom = kinematics_.cog();
+    drcom = momentum_helper_.getdCog();
+    CapturePoint = rcom(1)+sqrt(1.0/9.81)*drcom(1) - rcom_init(1);  // sqrt(1.0/9.81)=0.319
 //    cout << "dx "<< drcom(1) <<"\tTc*dx "<< sqrt(1.0/9.81)*drcom(1) << endl;
 //    cout << "COM: " << rcom(1) <<"\t CP: "<< CapturePoint << endl;
 //    cout << "CP: "<< CapturePoint << endl;
@@ -172,15 +194,18 @@ int mytest::run()
     /* servo control */
     for(int i=1; i<=N_DOFS; ++i)
     {
-
+        /*if(i>=1 && i<=14)
+            continue;
+        if(i>=32)
+            continue;*/
 
         //    joint_des_state[i].uff =  hinvdyn_solver_.admis_torques_[i-1];
         //    joint_des_state[i].thdd = (1.-transition)*init_joint_state_thdd_[i-1];
         // SL provides a joint PD controller. The following cancels it out,
         // because we would like to do pure feed-forward control
-        joint_des_state[i].th = joint_default_state[i].th;
+        //joint_des_state[i].th = joint_default_state[i].th;
         //joint_des_state[B_TFE].th = (1.-transition)*init_joint_state_th_[B_TFE-1] + transition*joint_state[B_TFE].th;
-        joint_des_state[i].thd = joint_default_state[i].thd;
+        //joint_des_state[i].thd = joint_default_state[i].thd;
         //cout << "DOF " << joint_names[i] << " hinv t " << hinvdyn_solver_.admis_torques_[i-1] << endl;
 
     }
@@ -190,16 +215,16 @@ int mytest::run()
     //joint_des_state[R_AFE].uff = -cog_kp*rcom(1)-cog_kd*drcom(1);
 
     // shoudler pitch
-    //joint_des_state[L_SFE].th = Arm.armLeft.m_retraction(0);
-    //joint_des_state[R_SFE].th = Arm.armLeft.m_retraction(0);
+    joint_des_state[L_SFE].th = joint_init_state[L_SFE-1] + Arm.armLeft.m_retraction(0);
+    joint_des_state[R_SFE].th = joint_init_state[R_SFE-1] + Arm.armLeft.m_retraction(0);
 
     // shoudler roll
-    //joint_des_state[L_SAA].th = joint_default_state[L_SAA].th-1.0*Arm.armLeft.m_retraction(0);
-    //joint_des_state[R_SAA].th = joint_default_state[R_SAA].th-1.0*Arm.armLeft.m_retraction(0);
+    joint_des_state[L_SAA].th = joint_init_state[L_SAA-1]-1.0*Arm.armLeft.m_retraction(0);
+    joint_des_state[R_SAA].th = joint_init_state[R_SAA-1]-1.0*Arm.armLeft.m_retraction(0);
 
     // elbow
-    //joint_des_state[L_EB].th = joint_default_state[L_EB].th+1.2*Arm.armLeft.m_retraction(0);
-    //joint_des_state[R_EB].th = joint_default_state[R_EB].th+1.2*Arm.armLeft.m_retraction(0);
+    joint_des_state[L_EB].th = joint_init_state[L_EB-1]+1.2*Arm.armLeft.m_retraction(0);
+    joint_des_state[R_EB].th = joint_init_state[R_EB-1]+1.2*Arm.armLeft.m_retraction(0);
 
     real_time = Num_loop*1.0/double(task_servo_rate);
     Num_loop++;

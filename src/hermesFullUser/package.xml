@@ -10,6 +10,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>ati_ft_sensor</build_depend>
+  <build_depend>cga_imu</build_depend>
   <build_depend>xenomai_ros</build_depend>
   <build_depend>hermes_full</build_depend>
   <build_depend>biped_locomotion_lib</build_depend>

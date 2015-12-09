@@ -51,6 +51,13 @@ namespace wholebody_demo
       mytest();
       ~mytest();
 
+      Vector3d drcom;
+      Vector3d rcom;
+      Vector3d rcom_init;
+      double CapturePoint;
+      double output;
+      VectorXd joint_init_state;
+      
       ArmReflex Arm;
 
       int run();

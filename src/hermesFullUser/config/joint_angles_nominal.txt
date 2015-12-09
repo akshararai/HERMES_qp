@@ -1,0 +1,114 @@
+ L_SFE: th= 0.086  thd=-0.000  load= -1.39  u=-17.12  uff=  0.00 vff=   0.00
+ 2: L_SAA: th=-0.243  thd=-0.007  load= -3.56  u=  8.72  uff=  0.00 vff=   0.00
+ 3:  L_HR: th= 0.000  thd=-0.001  load=-22.65  u= -0.01  uff=  0.00 vff=   0.00
+ 4:  L_EB: th= 0.632  thd=-0.004  load= -1.31  u= -6.60  uff=  0.00 vff=   0.00
+ 5:  L_WR: th=-0.460  thd= 0.003  load= -5.63  u= 23.02  uff=  0.00 vff=   0.00
+ 6: L_WFE: th=-0.018  thd= 0.000  load= -0.09  u=  0.90  uff=  0.00 vff=   0.00
+ 7: L_WAA: th=-0.309  thd= 0.000  load= -0.07  u= 15.47  uff=  0.00 vff=   0.00
+ 8: R_SFE: th=-0.176  thd= 0.003  load= -1.36  u= 35.20  uff=  0.00 vff=   0.00
+ 9: R_SAA: th=-0.525  thd= 0.004  load= -5.00  u= 100.00  uff=  0.00 vff=   0.00
+10:  R_HR: th=-0.067  thd= 0.002  load= 729.24  u=  3.34  uff=  0.00 vff=   0.00
+11:  R_EB: th= 0.691  thd=-0.000  load= -0.79  u= -9.54  uff=  0.00 vff=   0.00
+12:  R_WR: th= 0.471  thd=-0.002  load=-109.65  u=-23.55  uff=  0.00 vff=   0.00
+13: R_WFE: th=-0.337  thd=-0.000  load=  0.40  u= 16.84  uff=  0.00 vff=   0.00
+14: R_WAA: th=-0.079  thd= 0.000  load= -0.09  u=  3.96  uff=  0.00 vff=   0.00
+15: L_HFE: th=-0.001  thd= 0.002  load=  3.84  u=  0.11  uff=  0.00 vff=   0.00
+16: L_HAA: th=-0.062  thd=-0.003  load= -5.59  u= -9.43  uff=  0.00 vff=   0.00
+17: L_HFR: th= 0.009  thd= 0.003  load=  2.73  u= -0.52  uff=  0.00 vff=   0.00
+18: L_KFE: th= 0.055  thd= 0.007  load=  0.50  u=-11.32  uff=  0.00 vff=   0.00
+19:  L_AR: th= 0.016  thd= 0.006  load= -1.23  u= -0.81  uff=  0.00 vff=   0.00
+20: L_AFE: th= 0.062  thd= 0.005  load= -0.80  u=  7.48  uff=  0.00 vff=   0.00
+21: L_AAA: th= 0.029  thd=-0.002  load= -0.73  u=  4.26  uff=  0.00 vff=   0.00
+22: R_HFE: th=-0.006  thd=-0.008  load= -5.11  u=  1.74  uff=  0.00 vff=   0.00
+23: R_HAA: th=-0.011  thd= 0.011  load=  7.58  u= -9.77  uff=  0.00 vff=   0.00
+24: R_HFR: th=-0.018  thd=-0.014  load= -0.26  u=  1.08  uff=  0.00 vff=   0.00
+25: R_KFE: th= 0.031  thd=-0.009  load=  0.12  u= -7.69  uff=  0.00 vff=   0.00
+26:  R_AR: th=-0.004  thd= 0.005  load=  0.04  u=  0.18  uff=  0.00 vff=   0.00
+27: R_AFE: th= 0.078  thd=-0.001  load=  0.93  u=-15.68  uff=  0.00 vff=   0.00
+28: R_AAA: th= 0.032  thd= 0.004  load= 24.82  u=-36.48  uff=  0.00 vff=   0.00
+29:  B_TR: th=-0.061  thd=-0.003  load= 71.90  u= 124.30  uff=  0.00 vff=   0.00
+30: B_TAA: th= 0.014  thd= 0.012  load=  5.81  u= -5.93  uff=  0.00 vff=   0.00
+31: B_TFE: th=-0.116  thd= 0.001  load= 32.58  u= 46.36  uff=  0.00 vff=   0.00
+32:  B_HN: th= 0.295  thd= 0.000  load=-32767.02  u= -2.92  uff=  0.00 vff=   0.00
+33:  B_HT: th= 0.160  thd=-0.000  load=-4499.50  u= -2.73  uff=  0.00 vff=   0.00
+34:  B_HR: th=-0.003  thd=-0.002  load= 5666.38  u=  3.03  uff=  0.00 vff=   0.00
+35:  R_EP: th= 0.005  thd=-0.001  load=-32729.11  u= -0.00  uff=  0.00 vff=   0.00
+36:  R_ET: th= 0.015  thd=-0.003  load=-32726.91  u= -0.00  uff=  0.00 vff=   0.00
+37:  L_EP: th=-0.005  thd= 0.003  load=-32727.27  u=  0.00  uff=  0.00 vff=   0.00
+38:  L_ET: th=-0.005  thd=-0.001  load= 32767.02  u=  0.00  uff=  0.00 vff=   0.00
+39: L_THR: th= 0.000  thd= 0.000  load=  0.00  u=  0.00  uff=  0.00 vff=   0.00
+40: L_THF: th= 0.000  thd= 0.000  load=  0.00  u=  2.00  uff=  0.00 vff=   0.00
+41:  L_IF: th= 0.000  thd= 0.000  load=  0.00  u=  4.00  uff=  0.00 vff=   0.00
+42:  L_MF: th= 0.000  thd= 0.000  load=  0.00  u=  4.00  uff=  0.00 vff=   0.00
+43:  L_RF: th= 0.000  thd= 0.000  load=  0.00  u=  4.00  uff=  0.00 vff=   0.00
+44:  L_LF: th= 0.000  thd= 0.000  load=  0.00  u=  4.00  uff=  0.00 vff=   0.00
+45: R_THR: th= 0.000  thd= 0.000  load=  0.00  u=  0.00  uff=  0.00 vff=   0.00
+46: R_THF: th= 0.000  thd= 0.000  load=  0.00  u=  2.00  uff=  0.00 vff=   0.00
+47:  R_IF: th= 0.000  thd= 0.000  load=  0.00  u=  4.00  uff=  0.00 vff=   0.00
+48:  R_MF: th= 0.000  thd= 0.000  load=  0.00  u=  4.00  uff=  0.00 vff=   0.00
+49:  R_RF: th= 0.000  thd= 0.000  load=  0.00  u=  4.00  uff=  0.00 vff=   0.00
+
+
+Desired States:
+L_SFE: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+L_SAA: th=-0.400  thd= 0.000  thdd=    0.000  ff=  0.00
+ L_HR: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+ L_EB: th= 0.500  thd= 0.000  thdd=    0.000  ff=  0.00
+ L_WR: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+L_WFE: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+L_WAA: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+
+R_SFE: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+R_SAA: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+ R_HR: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+ R_EB: th= 0.500  thd= 0.000  thdd=    0.000  ff=  0.00
+ R_WR: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+R_WFE: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+R_WAA: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+
+
+L_HFE: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+L_HAA: th=-0.100  thd= 0.000  thdd=    0.000  ff=  0.00
+L_HFR: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+L_KFE: th= 0.010  thd= 0.000  thdd=    0.000  ff=  0.00
+ L_AR: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+L_AFE: th= 0.100  thd= 0.000  thdd=    0.000  ff=  0.00
+L_AAA: th= 0.050  thd= 0.000  thdd=    0.000  ff=  0.00
+
+R_HFE: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+R_HAA: th=-0.050  thd= 0.000  thdd=    0.000  ff=  0.00
+R_HFR: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+R_KFE: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+ R_AR: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+R_AFE: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+R_AAA: th=-0.150  thd= 0.000  thdd=    0.000  ff=  0.00
+
+
+ B_TR: th= 0.250  thd= 0.000  thdd=    0.000  ff=  0.00
+B_TAA: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+B_TFE: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+ B_HN: th= 0.100  thd= 0.000  thdd=    0.000  ff=  0.00
+ B_HT: th=-0.050  thd= 0.000  thdd=    0.000  ff=  0.00
+ B_HR: th= 0.300  thd= 0.000  thdd=    0.000  ff=  0.00
+ R_EP: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+ R_ET: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+ L_EP: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+ L_ET: th=-0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+L_THR: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+L_THF: th= 0.200  thd= 0.000  thdd=    0.000  ff=  0.00
+ L_IF: th= 0.400  thd= 0.000  thdd=    0.000  ff=  0.00
+ L_MF: th= 0.400  thd= 0.000  thdd=    0.000  ff=  0.00
+ L_RF: th= 0.400  thd= 0.000  thdd=    0.000  ff=  0.00
+ L_LF: th= 0.400  thd= 0.000  thdd=    0.000  ff=  0.00
+R_THR: th= 0.000  thd= 0.000  thdd=    0.000  ff=  0.00
+R_THF: th= 0.200  thd= 0.000  thdd=    0.000  ff=  0.00
+ R_IF: th= 0.400  thd= 0.000  thdd=    0.000  ff=  0.00
+ R_MF: th= 0.400  thd= 0.000  thdd=    0.000  ff=  0.00
+ R_RF: th= 0.400  thd= 0.000  thdd=    0.000  ff=  0.00
+ R_LF: th= 0.400  thd= 0.000  thdd=    0.000  ff=  0.00
+
+50:  R_LF: th= 0.000  thd= 0.000  load=  0.00  u=  4.00  uff=  0.00 vff=   0.00
+
+
+
+

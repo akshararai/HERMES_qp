@@ -14,7 +14,7 @@
 #include "ArmReflex.hpp"
 
 ArmReflex::ArmReflex():
-dT(0.001),	// defualt value, later in config it will be assigned again
+dT(0.004),	// defualt value, later in config it will be assigned again
 a_max_retract(6.0),
 v_max_retract(1.0),
 A_retract(0.0),	// value will be computed before, not predetermined
@@ -88,13 +88,13 @@ void ArmReflex::reflex(bool fall_trigger)
 
 bool ArmReflex::contactPhase(const VectorXd &FTl,const VectorXd &FTr)
 {
-
+    return 0;
 }
 
 
 bool ArmReflex::reflexSelection()
 {
-
+    return 0;
 }
 
 
@@ -211,12 +211,12 @@ void ArmReflex::stateMachine(bool fall_trigger)
 //        armLeft.A_retract=1.0; // pass in position is with respect to the moving arm frame
 //        armLeft.T_retract=0.4;
         double Tn=1.0*armLeft.T_retract;   // response time Tn 0.5 is half of the remain time
-        double zeta=1.5;    // damping ratio
+        double zeta=1.2;    // damping ratio
         armLeft.reflexConfig(dT, Tn, zeta);
         if (1)
         {
 //            cout<<"m_remainTime"<<"\t"<<m_remainTime<<"\t";
-            cout<<"left retraction triggered"<<"\t"<<armLeft.A_retract<<"\t"<<Tn<<endl;
+            //cout<<"left retraction triggered"<<"\t"<<armLeft.A_retract<<"\t"<<Tn<<endl;
         }
 	}
 
@@ -247,12 +247,12 @@ void ArmReflex::stateMachine(bool fall_trigger)
         armLeft.flg_retract.enable=false;
         armLeft.flg_retract.done=true;
 		// this switch happens only once
-        double Tn=0.5;   // hard coded DS time for the test
+        double Tn=2.0;   // hard coded DS time for the test
         double zeta=1.0;    // damping ratio
         armLeft.reflexConfig(dT, Tn, zeta);
         if (1)
         {
-            cout<<"left clearance triggered"<<"\t"<<endl;
+            //cout<<"left clearance triggered"<<"\t"<<endl;
         }
 	}
     // for the left arm, during Double Support (DS) phase, change flags, deactivate
@@ -264,7 +264,7 @@ void ArmReflex::stateMachine(bool fall_trigger)
         if (1)
         {
             // auto transit 10 state to 00 state
-            cout<<"left flags all deactivated"<<"\t"<<endl;
+            //cout<<"left flags all deactivated"<<"\t"<<endl;
         }
 	}
 
@@ -327,7 +327,7 @@ void ArmReflex::stateMachine(bool fall_trigger)
 	{
         if (1)
         {
-            cout<<"unexpected state"<<endl; // warning for possible bug
+            //cout<<"unexpected state"<<endl; // warning for possible bug
         }
 	}
 

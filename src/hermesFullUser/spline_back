@@ -1,0 +1,92 @@
+% clear all
+
+fname = 'prefs/t';
+delete(fname);
+
+T = 1;
+freq = 100;
+xmin = 0.3;
+xmax = 1.7;
+
+syms c d e f g h a b
+
+fnddd = @(t) 5*4*3*c*t^2 + 4*3*2*d*t + 3*2*e + 7*6*5*a*t^4 + 6*5*4*b*t^3;
+fndd = @(t) 5*4*c*t^3 + 4*3*d*t^2 + 3*2*e*t + 2*f + 7*6*a*t^5 + 6*5*b*t^4;
+fnd= @(t) 5*c*t^4 + 4*d*t^3 + 3*e*t^2 + 2*f*t + g + 7*a*t^6 + 6*b*t^5;
+fn= @(t) a*t^7 + b*t^6 + c*t^5 + d*t^4 + e*t^3 + f*t^2 + g*t + h;
+
+h = xmin;
+e=0;
+f=0;
+g=0;
+
+[Sa Sb Sc Sd] = solve(a+b+c+d == xmax - xmin, 210*a + 120*b + 60*c + 24*d == 0, 7*a + 6*b + 5*c + 4*d == 0, 42*a + 30*b + 20*c + 12*d == 0, a, b, c, d)
+
+x=0:1/freq:1;
+
+y=Sc*x.^5+Sd*x.^4+e*x.^3+f*x.^2+g*x+h+Sa*x.^7+Sb*x.^6;
+
+y=vpa(y);
+y = double(y);
+
+yd= 5*Sc*x.^4+4*Sd*x.^3+3*e*x.^2+2*f*x+g + 7*Sa*x.^6+6*Sb*x.^5;
+
+yd=vpa(yd);
+yd=double(yd);
+
+ydd = 5*4*Sc*x.^3+4*3*Sd*x.^2+3*2*e*x+2*f+7*6*Sa*x.^5+6*5*Sb*x.^4;
+
+ydd=vpa(ydd);
+ydd=double(ydd);
+
+Y=[y; yd; ydd; zeros(size(y))]';
+
+
+n = 10;
+
+I = 1; %1.5;
+Y = [length(y)*n length(y) n freq];
+dlmwrite(fname,Y,'delimiter',' ','precision','%d')
+Y2 = 'L_KFE_des_th L_KFE_des_thd L_KFE_des_thdd L_KFE_uff L_KFE_vff L_HFE_des_th L_HFE_des_thd L_HFE_des_thdd L_HFE_uff L_HFE_vff';
+fileID = fopen(fname,'a');
+fprintf(fileID, '%s\n',Y2);
+
+tff = I*ydd;
+
+%% gravity compensation
+% t1 = [6.6 13.28 20.06 27.03 32.26 39.23 45.7];
+% th = 0.1:0.1:0.7;
+
+t1 = -1.*[-1.6 -5.68 -9.81 -13.625 -16.9 -20.47 -23.28 -27.75 -31.25 -34.57 -37.12 -40.6 -43.6 -46.32 -48.9 -50.66 -52.44 -58.75 -52.7];
+% t1 = -1.*[-1.20787367716665,-4.31018889325274,-7.43570943895059,-10.3256684564810,-12.8288569051356,-15.5076100594533,-17.7020550338742,-21.0666646507728,-23.7592330502533,-26.2933236857514,-28.2413842255044,-30.8007980506139,-33.0724899357372,-35.1905091978644,-37.0992431381919,-38.3498572326687,-39.7356728517502,-44.6484125658184,-44.1773345705589];
+th = 0.1:0.1:1.9;
+
+mgl = sum(t1.^2)/sum(sin(th).*t1)
+p=polyfit(th,t1,3)
+
+% gff = p(1)*th+p(2);
+
+gff = p(1)*y.^3+p(2).*y.^2+p(3).*y+p(4);
+% gff1= mgl*sin(y);
+
+% figure; hold on
+% % plot(gff)
+% plot(gff,'r')
+
+%% data
+
+% figure; hold on
+% plot(tff);
+% plot(gff1);
+
+uff = tff+gff - 14.1 -5;
+uffd = diff(uff)*freq;
+uffd = [uffd uffd(end)];%- 2*uffd(end);
+% plot(uff,'g')
+% figure(1)
+% plot(uffd);
+Y2 = [1*ones(length(y),1) zeros(length(y),1) zeros(length(y),1) 50*ones(length(y),1) zeros(length(y),1)];
+Y1=[y; yd; ydd; uff; uffd]';
+Y8 = [Y1 Y2];
+
+dlmwrite(fname,Y8,'delimiter',' ','precision','%.6f','-append')

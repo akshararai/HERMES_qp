@@ -43,13 +43,9 @@ include_directories(
   ${EIGEN_INCLUDE_DIRS}
   ${ati_ft_sensor_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}  
+  ${Xenomai_INCLUDE_DIR}
   ${biped_locomotion_lib_INCLUDE_DIRS}
 )
-
-if(Xenomai_FOUND)
-  include_directories( ${Xenomai_INCLUDE_DIR} )
-endif()
-
 
 if(biped_locomotion_lib_FOUND)
   set(xtask_LINKED_LIBS ${xtask_LINKED_LIBS} biped_locomotion_lib_hermes_full)
@@ -72,8 +68,9 @@ set(xtask_LINKED_LIBS ${xtask_LINKED_LIBS}
 # build xtask
 add_executable(xtask_hermes_full
   ${xtask_FILES}
+  src/task/tasks/zero_pos.c
 )
-target_link_libraries(xtask_hermes_full ${xtask_LINKED_LIBS})
+target_link_libraries(xtask_hermes_full ${xtask_LINKED_LIBS} cga_imu pf_imu)
 set_target_properties(xtask_hermes_full PROPERTIES OUTPUT_NAME xtask)
 
 #
@@ -112,11 +109,11 @@ if (Xenomai_FOUND)
   sl_install_binary(${hermes_full_SOURCE_PREFIX}/${MACHTYPE} xrhermes xrhermes_full)
   sl_install_binary(${hermes_full_SOURCE_PREFIX}/${MACHTYPE} xrmotor xrmotor_hermes_full)
 
-  set(xtask_FILES ${xtask_FILES} src/task/tasks/ati_sensor.cpp)
 
   add_executable(xrtask_hermes_full
     ${xtask_FILES}
   )
   target_link_libraries(xrtask_hermes_full ${xtask_LINKED_LIBS} ati_ft_sensor)
-  set_target_properties(xrtask_hermes_full PROPERTIES COMPILE_DEFINITIONS "USE_ATI_SENSOR"  OUTPUT_NAME xrtask)
+  set_target_properties(xrtask_hermes_full PROPERTIES COMPILE_DEFINITIONS "USE_ATI_SENSOR"
+   OUTPUT_NAME xrtask)
 endif()

@@ -1,0 +1,15 @@
+clmcplot_convert('d00802');
+
+q = ans(:,23);
+qd = ans(:,24);
+tau = ans(:,25);
+uv = ans(:,32);
+
+qdd = [diff(qd) 0];
+taud = [diff(tau) 0];
+
+xpd = a3_calc(qd,q);
+xpdd = 
+
+
+

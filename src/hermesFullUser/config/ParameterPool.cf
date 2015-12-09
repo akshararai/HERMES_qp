@@ -18,7 +18,7 @@ simulation_servo_geometry	90x8-600+164
 openGL_servo_geometry		90x8-600+30
 
 main_window_geometry		80%x60%+20+20
-main_window_camera_pos		0.8 1.5 0.2
+main_window_camera_pos		0.5 1.5 0.2
 
 
 // floor checkerboard
@@ -40,6 +40,6 @@ real_osc_enabled                0
 
 // scale of the foot
 
-foot_scale			1.0
+foot_scale			1
 
 use_comp_inertia_fordyn 0
