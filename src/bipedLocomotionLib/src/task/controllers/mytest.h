@@ -46,68 +46,79 @@ using namespace momentum_balance_control;
 
 namespace wholebody_demo
 {
-    class mytest {
-     public:
-      mytest();
-      ~mytest();
+    class mytest
+    {
+    public:
+        mytest();
+        ~mytest();
 
-      ArmReflex Arm;
+        ArmReflex Arm;
 
-      int run();
+        int run();
 
-     private:
-      // we will use a config file to tune parameters conveniently
-      string config_file_;
+    private:
+        // we will use a config file to tune parameters conveniently
+        string config_file_;
 
-      // We have upper and lower torque limit constraints
-      static const int Max_Ineq_Rows = 2*N_DOFS;
-      // We will do momentum control (6 rows) and constrain
-      // the feet not to move (6 each)
-      static const int Max_Eq_Rows = 6+2*6+N_DOFS+6+2*6;
+        // We have upper and lower torque limit constraints
+        static const int Max_Ineq_Rows = 2*N_DOFS;
+        // We will do momentum control (6 rows) and constrain
+        // the feet not to move (6 each)
+        static const int Max_Eq_Rows = 6+2*6+N_DOFS+6+2*6;
 
-      // this is to set endeffectors as un-/constrained
-      SL_endeff endeff_constraints_[N_ENDEFFS+1];
+        // this is to set endeffectors as un-/constrained
+        SL_endeff endeff_constraints_[N_ENDEFFS+1];
 
-      // our helper classes to construct various quanitties with eigen
-      KinematicsEigen kinematics_;
-      FloatingBaseKinematics endeff_kinematics_;
-      MomentumComputation momentum_helper_;
-      FootContactHandlerHermes contact_helper_;
+        // our helper classes to construct various quanitties with eigen
+        KinematicsEigen kinematics_;
+        FloatingBaseKinematics endeff_kinematics_;
+        MomentumComputation momentum_helper_;
+        FootContactHandlerHermes contact_helper_;
 
-      // the hierarchical inverse dynamics solver and task composers
-      HierarchInverseDynamics<Max_Ineq_Rows, Max_Eq_Rows> hinvdyn_solver_;
+        // the hierarchical inverse dynamics solver and task composers
+        HierarchInverseDynamics<Max_Ineq_Rows, Max_Eq_Rows> hinvdyn_solver_;
 
-      // this is for PD control
-      Eigen::Vector3d cog_des_, cog_p_gains_, cog_d_gains_;
-    //  Eigen::Matrix<double, 6, 1> cog_ref_;
-    //  Eigen::Matrix<double, N_DOFS+6,1> default_posture_;
-    //  Eigen::Matrix<double, N_DOFS+6,1> posture_p_gains_, posture_d_gains_;
+        // this is for PD control
+        Eigen::Vector3d cog_des_, cog_p_gains_, cog_d_gains_;
+        //  Eigen::Matrix<double, 6, 1> cog_ref_;
+        //  Eigen::Matrix<double, N_DOFS+6,1> default_posture_;
+        //  Eigen::Matrix<double, N_DOFS+6,1> posture_p_gains_, posture_d_gains_;
 
-    //  // weights
-    //  Eigen::Matrix<double, 6, 1> foot_constr_weight_;
-    //  Eigen::Matrix<double, 6, 1> frc_reg_weight_;
-    //  Eigen::Matrix<double, 6, 1> cog_ctrl_weight_;
-    //  Eigen::Matrix<double, N_DOFS+6, 1> joint_ctrl_weight_;
+        //  // weights
+        //  Eigen::Matrix<double, 6, 1> foot_constr_weight_;
+        //  Eigen::Matrix<double, 6, 1> frc_reg_weight_;
+        //  Eigen::Matrix<double, 6, 1> cog_ctrl_weight_;
+        //  Eigen::Matrix<double, N_DOFS+6, 1> joint_ctrl_weight_;
 
-      // parameters for the push simulation
-      double push_force, push_duration, push_time;
+        // parameters for the push simulation
+        double push_force, push_duration, push_time;
 
-      // some info about task
-      double task_start_time;
-      double real_time;
-      int Num_loop;
-      bool isFall;
-      double stability_margin;
+        // some info about task
+        double task_start_time;
+        double real_time;
+        int Num_loop;
+        bool isFall;
+        double stability_margin;
 
-      double cog_kp; //=500.0;
-      double cog_kd; //=50.0;
+        double cog_kp; //=500.0;
+        double cog_kd; //=50.0;
 
-      double reflex_mag;
-      double reflex_time;
+        double reflex_mag;
+        double reflex_time;
+
+        double m_yaw;
+        double m_roll;
+        double m_pitch;
+
+        double torso_pitch_des;
+        double torso_pitch_w;
+        double torso_pitch_kp; //=500.0;
 
 
-      /* vectors */
-      Eigen::Matrix<double, N_DOFS,1> init_joint_state_uff_, init_joint_state_th_, init_joint_state_thd_, init_joint_state_thdd_;
+        void getEuler();
+        void attitudeControl();
+        /* vectors */
+        Eigen::Matrix<double, N_DOFS,1> init_joint_state_uff_, init_joint_state_th_, init_joint_state_thd_, init_joint_state_thdd_;
     };
 
 }  // Namespace

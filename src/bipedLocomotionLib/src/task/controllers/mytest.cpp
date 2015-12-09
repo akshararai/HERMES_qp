@@ -83,7 +83,7 @@ mytest::mytest() :
     cout << "N_DOFS: " << N_DOFS << endl;
     cout << "n_dofs: " << n_dofs << endl;
 
-    cout << "COM: " << kinematics_.cog() << endl;;
+    cout << "COM: " << kinematics_.cog() << endl;
 
 
     task_start_time = task_servo_time;  // you should put this assignment in the end, coz servo time is running in paralell thread
@@ -209,6 +209,29 @@ int mytest::run()
 
     return TRUE;
 }
+
+
+
+void mytest::getEuler()
+{
+    double q0 = base_orient.q[_Q0_];
+    double q1 = base_orient.q[_Q1_];
+    double q2 = base_orient.q[_Q2_];
+    double q3 = base_orient.q[_Q3_];
+
+    m_yaw = atan2(2.0*(q0*q3 + q1*q2),1.0 - 2.0*(q2*q2 + q3*q3)); // yaw
+    m_roll = asin(2.0*(q0*q2 - q3*q1)); // roll
+    m_pitch = atan2(2.0*(q0*q1 + q2*q3),1.0 - 2.0*(q1*q1 + q2*q2)); // pitch
+}
+
+
+
+void mytest::attitudeControl()
+{
+    torso_pitch_w = torso_pitch_kp*(torso_pitch_des-m_pitch);
+}
+
+
 
 }  // Namespace
  
