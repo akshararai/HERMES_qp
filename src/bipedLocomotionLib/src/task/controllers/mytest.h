@@ -91,6 +91,7 @@ namespace wholebody_demo
         //  Eigen::Matrix<double, N_DOFS+6, 1> joint_ctrl_weight_;
 
         // parameters for the push simulation
+        double sampleT;
         double push_force, push_duration, push_time;
 
         // some info about task
@@ -109,10 +110,13 @@ namespace wholebody_demo
         double m_yaw;
         double m_roll;
         double m_pitch;
+        double m_dpitch;
 
-        double torso_pitch_des;
-        double torso_pitch_w;
+        double torso_des;
+        double torso_pitch_w;        double torso_pitch_th;
+
         double torso_pitch_kp; //=500.0;
+        double torso_pitch_kd;
 
 
         void getEuler();

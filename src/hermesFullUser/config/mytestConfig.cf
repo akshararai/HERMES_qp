@@ -1,11 +1,15 @@
 /* some simulation parameters */
-push_force 100.0
+push_force 150.0
 push_duration 0.2
 
 
-cog_kp 500.0
-cog_kd 50.0
+cog_kp 10.0
+cog_kd 200.0
 
 /* Units in radius and second */
-reflex_mag 0.9	
-reflex_time 1.0
+reflex_mag 0.65
+reflex_time 0.3
+
+
+torso_pitch_kp 5.0
+torso_pitch_kd 2.5

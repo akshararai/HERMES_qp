@@ -211,7 +211,7 @@ void ArmReflex::stateMachine(bool fall_trigger)
 //        armLeft.A_retract=1.0; // pass in position is with respect to the moving arm frame
 //        armLeft.T_retract=0.4;
         double Tn=1.0*armLeft.T_retract;   // response time Tn 0.5 is half of the remain time
-        double zeta=1.5;    // damping ratio
+        double zeta=1.2;    // damping ratio
         armLeft.reflexConfig(dT, Tn, zeta);
         if (1)
         {
