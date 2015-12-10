@@ -109,7 +109,9 @@ namespace wholebody_demo
       double cog_kp; //=500.0;
       double cog_kd; //=50.0;
 
-      double reflex_mag;
+      double reflex_mag_sp;
+      double reflex_mag_sr;
+      double reflex_mag_e;
       double reflex_time;
 
 

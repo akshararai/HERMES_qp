@@ -97,13 +97,14 @@ where_utility(int start, int n_dofs)
 
   for (i=start; i<=start+n_dofs-1; ++i) {
 
-    printf("%2d: %5s: th=% 5.3f  thd=% 6.3f  load=% 6.2f  u=% 6.2f  ff=% 6.2f\n",
+    printf("%2d: %5s: th=% 5.3f  thd=% 6.3f  load=% 6.2f  u=% 6.2f  uff=% 6.2f vff= %6.2f\n",
 	   i,joint_names[i],
 	   joint_state[i].th,
 	   joint_state[i].thd,
 	   joint_state[i].load,
 	   joint_state[i].u,
-	   joint_des_state[i].uff);
+	   joint_des_state[i].uff,
+     joint_des_state[i].vff);
 
   }
   printf("\n");
@@ -483,7 +484,6 @@ init_commands(void)
   addToMan("where_base","current state of base coordiante system",where_base);
   addToMan("where_misc","current state of miscellanious sensors",where_misc);
   addToMan("where_cog","current state of the COG",where_cog);
-  addToMan("print_J","current state of Jacobian",print_J);
   if (strcmp(servo_name,"motor") != 0) {
     addToMan("cwhere","cartesian state of endeffectors",cwhere);
     addToMan("lwhere","cartesian state of links",lwhere);
@@ -540,6 +540,7 @@ read_sensor_offsets(char *fname) {
 	   &joint_range[i][THETA_OFFSET]);
     joint_default_state[i].thd = 0;
     joint_default_state[i].uff = 0;
+		joint_default_state[i].vff = 0;
   }
   
   fclose(in);
@@ -892,6 +893,7 @@ cSL_SDJstate(SL_DJstate *sd, SL_fSDJstate *sf, int n, int flag)
       sf[i].th   = sd[i].th;
       sf[i].thd  = sd[i].thd;
       sf[i].uff  = sd[i].uff;
+      sf[i].vff  = sd[i].vff; 
     }
     break;
   case FLOAT2DOUBLE:
@@ -899,6 +901,7 @@ cSL_SDJstate(SL_DJstate *sd, SL_fSDJstate *sf, int n, int flag)
       sd[i].th   = sf[i].th;
       sd[i].thd  = sf[i].thd;
       sd[i].uff  = sf[i].uff;
+      sd[i].vff  = sf[i].vff; 
     }
     break;
   default:
@@ -918,6 +921,7 @@ cSL_DJstate(SL_DJstate *sd, SL_fDJstate *sf, int n, int flag)
       sf[i].thd  = sd[i].thd;
       sf[i].thdd = sd[i].thdd;
       sf[i].uff  = sd[i].uff;
+      sf[i].vff  = sd[i].vff; 
       sf[i].uex  = sd[i].uex;
     }
     break;
@@ -927,6 +931,7 @@ cSL_DJstate(SL_DJstate *sd, SL_fDJstate *sf, int n, int flag)
       sd[i].thd  = sf[i].thd;
       sd[i].thdd = sf[i].thdd;
       sd[i].uff  = sf[i].uff;
+      sd[i].vff  = sf[i].vff;      
       sd[i].uex  = sf[i].uex;
     }
     break;
@@ -1319,12 +1324,12 @@ where_cog(void)
   printf("Current COG State:\n");
 
 
-  printf("              x=% 5.3f (% 5.3f)   y=% 5.3f (% 5.3f)   z=% 5.3f (% 5.3f)\n",
-	 cog.x[_X_],cog_des.x[_X_],cog.x[_Y_],cog_des.x[_Y_],cog.x[_Z_],cog_des.x[_Z_]);
-  printf("             xd=% 5.3f (% 5.3f)  yd=% 5.3f (% 5.3f)  zd=% 5.3f (% 5.3f)\n",
-	 cog.xd[_X_],cog_des.xd[_X_],cog.xd[_Y_],cog_des.xd[_Y_],cog.xd[_Z_],cog_des.xd[_Z_]);
-  printf("            xdd=% 5.3f (% 5.3f) ydd=% 5.3f (% 5.3f) zdd=% 5.3f (% 5.3f)\n",
-	 cog.xdd[_X_],cog_des.xdd[_X_],cog.xdd[_Y_],cog_des.xdd[_Y_],cog.xdd[_Z_],cog_des.xdd[_Z_]);
+  printf("            x=% 5.3f    y=% 5.3f    z=% 5.3f\n",
+	 cog.x[_X_],cog.x[_Y_],cog.x[_Z_]);
+  printf("            xd=% 5.3f   yd=% 5.3f   zd=% 5.3f\n",
+	 cog.xd[_X_],cog.xd[_Y_],cog.xd[_Z_]);
+  printf("            xdd=% 5.3f  ydd=% 5.3f  zdd=% 5.3f\n",
+	 cog.xdd[_X_],cog.xdd[_Y_],cog.xdd[_Z_]);
   printf("\n");
 
 }
@@ -2820,7 +2825,7 @@ count_extra_contact_points(char *fname) {
     if (rc == 6)
       count += n_checks;
     else {
-      if (rc != EOF) 
+      if (rc != EOF)
 	printf("Parsing error in count_extra_contact_points in SL_common.c (rc=%d)\n",rc);
       break;
     }
@@ -2959,34 +2964,3 @@ coordinates, too.
   }
 
 }
-
-/*!*****************************************************************************
- *******************************************************************************
-\note  print_J
-\date  Feb 1999
-\remarks 
-
- prints the current Jacobian of the endeffectors
-
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
-
- none
-
- ******************************************************************************/
-void
-print_J(void)
-{
-  int i,j;
-
-  if (!servo_enabled) {
-    beep(1);
-    printf("WARNING: servo is not running!!\n");
-  }
-
-  print_mat("Jacobian (actual)",J);
-  print_mat("Jacobian (desired)",Jdes);
-
-}
-
-

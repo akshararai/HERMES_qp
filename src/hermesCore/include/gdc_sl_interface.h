@@ -34,7 +34,7 @@ public:
   bool initialize();
 
   bool translateJointStates(const std::vector<hermes_communication_tools::GDCState>& gdc_states, SL_Jstate *j_state);
-  bool translateFootSensors(const std::vector<hermes_communication_tools::FootSensorState>& foot_states, double* misc_sensors);
+  bool translateMiscSensors(const std::vector<hermes_communication_tools::FootSensorState>& foot_states, double* misc_sensors);
 
   bool translateCommands(SL_Jstate* command, SL_Jstate* j_state, std::vector<hermes_communication_tools::GDCState>& gdc_state);
 
@@ -48,6 +48,7 @@ private:
   typedef struct Translation {
           double slope_;
           double offset_;
+					int invert_;
   } Translation;
 
   Translation joint_trans_positions_[N_DOFS+1];
@@ -74,12 +75,6 @@ private:
   static const int PISTON_ATTACHEMENT=11;
   static const int ANGLE_MAIN_PISTON=12;
 
-  //enumeration of actuation and sensing type
-  static const int ROTARY=0;
-  static const int LINEAR_SIMPLE=1;
-  static const int LINEAR_4_BAR=2;
-  static const int LINEAR_HFR=3;
-  static const int LINEAR_EXTENDED=4;
 
 };
 

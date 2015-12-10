@@ -14,7 +14,8 @@ motor commands. This version of the functions is talking to the CBcomm
 program via shared memory and is intended to control the real robot
 
 ============================================================================*/
-
+#include "cga_imu.h"
+#include "pf_imu.h"
 
 #include "SL_user_sensor_proc_xeno.h"
 
@@ -27,35 +28,34 @@ program via shared memory and is intended to control the real robot
 #include "SL_collect_data.h"
 #include "SL_unix_common.h"
 
-#include "raw_data_access.h"
 #include "gdc_sl_interface.h"
 
 #include <vector>
 
-hermes_communication_tools::GDCNetwork gdc_network; ValveController valve_controller;
-ValveIdentifier valve_identifier;
+                                                                                          
 
+
+hermes_communication_tools::GDCNetwork gdc_network;
+ValveController valve_controller;
 RT_MUTEX gdc_mutex;
-
+cga_imu::CGA_IMU imu_sensor;
 
 
 ///////////////////////////////////////////////////
 ////////////////local variables////////////////////
 ///////////////////////////////////////////////////
-#ifdef SL_VICON
-sl_vicon::DataCollect vicon_data;
-#endif
-
 GDCSLInterface gdc_sl_interface;
 hermes_communication_tools::ImuInterfaceNonRT imu_interface_nonrt;
 hermes_communication_tools::ImuInterfaceNonRTStream imu_interface_nonrt_stream(false);
 hermes_communication_tools::ImuInterface imu_interface_rt;
+pf_imu::pf_IMU pf_imu_interface_nonrt_stream;
 enum{
 	IMU_MODE_RT_STREAM,
 	IMU_MODE_NONRT,
   IMU_MODE_NONRT_STREAM,
+  IMU_MODE_PF_NONRT_STREAM,
   IMU_MODE_DONT_USE
-} imu_mode= IMU_MODE_NONRT;
+} imu_mode= IMU_MODE_PF_NONRT_STREAM;
 
 bool change_position_gains, change_torque_gains, change_valve_dac_bias;
 bool change_dither;
@@ -64,8 +64,6 @@ int new_bias[2]; //bias or dither parameters
 int gdc_card_index; //#of the GDC card that needs a gain change
 bool use_feet = true;
 
-RawDataAccess raw_data;
-
 ///////////////////////////////////////////////////
 ////////////////local functions////////////////////
 ///////////////////////////////////////////////////
@@ -73,7 +71,7 @@ static void   headLin2Rot(double l1, double l2, double l1d, double l2d,
                           double *alpha, double *beta, double *alphad, double *betad);
 static void   headRot2Lin(double alpha, double beta, double alphad, double betad,
                           double *l1, double *l2, double *l1d, double *l2d);
-static int updateOpenGL(SL_Jstate *raw, double* misc_raw);
+static int updateOpenGL(SL_Jstate *raw_joint_state, double* misc_raw);
 
 
 
@@ -94,6 +92,7 @@ none
  ******************************************************************************/
 int init_user_sensor_processing(void)
 {
+  printf("2 was reached \n");
 
   int i,j;
 
@@ -137,8 +136,11 @@ int init_user_sensor_processing(void)
     return FALSE;
 
   //initialize the valve controller
-  if(!valve_controller.initialize())
+  if(!valve_controller.initialize()) 
+  {
+    printf("1 was reached \n");
     return FALSE;
+  }
 
   //initialize the GDC Network
   if(!gdc_network.initialize("config/gdc_dof_config.cf"))
@@ -177,6 +179,13 @@ int init_user_sensor_processing(void)
     return FALSE;
   }
 
+	///// initialize cga_imu sensors
+	if(!imu_sensor.initialize()) {
+		printf("cga_imu sensor not initialized");
+		return FALSE;
+	}
+
+
   //initialize imu communication
   if(imu_mode != IMU_MODE_DONT_USE)
   {
@@ -207,16 +216,18 @@ int init_user_sensor_processing(void)
 				return FALSE;
 			}
 			break;
+    case IMU_MODE_PF_NONRT_STREAM:
+      if(!pf_imu_interface_nonrt_stream.initialize()){
+        printf("error in initializing the pf non-real-time imu in streaming mode\n");
+        return FALSE;
+      }
+      break;
 		default:
 			rt_printf("bad imu_mode\n");
 			return false;
 		}
 	  rt_printf("initialized imu successfully\n");
   }
-
-#ifdef SL_VICON
-  vicon_data.initialize(global_argc, global_argv);
-#endif
   rt_printf("Init done.\n");
 
 
@@ -257,8 +268,6 @@ int init_user_sensor_processing(void)
   }
 #endif
 
-  if(!raw_data.init())
-      return FALSE;
 
   //collect some data
   for(int i=0; i<(int)gdc_network.gdc_card_states_.size(); ++i)
@@ -281,7 +290,7 @@ int init_user_sensor_processing(void)
     addVarToCollect((char *)&(gdc_network.gdc_card_states_[i].actual_torque_),
                     var_name, "rad", SHORT, 1);
 
-    sprintf(var_name, "%s_gdc_u", gdc_network.gdc_card_states_[i].joint_name_.c_str());
+    sprintf(var_name, "%s_gdc_des_load", gdc_network.gdc_card_states_[i].joint_name_.c_str());
     addVarToCollect((char *)&(gdc_network.gdc_card_states_[i].desired_torque_),
                     var_name, "rad", SHORT, 1);
 
@@ -293,23 +302,20 @@ int init_user_sensor_processing(void)
     addVarToCollect((char *)&(gdc_network.gdc_card_states_[i].actual_valve_command_),
                     var_name, "rad", SHORT, 1);
 
-  }
+  addVarToCollect((char *)&(imu_sensor.A_[0]), "imu_1_Ax","N",DOUBLE,TRUE);                                       
+  addVarToCollect((char *)&(imu_sensor.A_[1]), "imu_1_Ay","N",DOUBLE,TRUE);                                       
+  addVarToCollect((char *)&(imu_sensor.A_[2]), "imu_1_Az","N",DOUBLE,TRUE);                                       
+  addVarToCollect((char *)&(imu_sensor.G_[0]), "imu_1_Gx","N",DOUBLE,TRUE);                                       
+  addVarToCollect((char *)&(imu_sensor.G_[1]), "imu_1_Gy","N",DOUBLE,TRUE);                                       
+  addVarToCollect((char *)&(imu_sensor.G_[2]), "imu_1_Gz","N",DOUBLE,TRUE);                                       
+  addVarToCollect((char *)&(imu_sensor.A1_[0]), "imu_2_Ax","N",DOUBLE,TRUE);                                      
+  addVarToCollect((char *)&(imu_sensor.A1_[1]), "imu_2_Ay","N",DOUBLE,TRUE);                                      
+  addVarToCollect((char *)&(imu_sensor.A1_[2]), "imu_2_Az","N",DOUBLE,TRUE);                                      
+  addVarToCollect((char *)&(imu_sensor.G1_[0]), "imu_2_Gx","N",DOUBLE,TRUE);                                      
+  addVarToCollect((char *)&(imu_sensor.G1_[1]), "imu_2_Gy","N",DOUBLE,TRUE);                                      
+  addVarToCollect((char *)&(imu_sensor.G1_[2]), "imu_2_Gz","N",DOUBLE,TRUE);                                      
 
-#ifdef HAS_LOWER_BODY
-  if(use_feet)
-  {
-    char var_name[20];
-    for(int i=0; i<(int)gdc_network.foot_sensor_states_.size(); ++i)
-    {
-      for(int j=0; j<8; ++j)
-      {
-        sprintf(var_name, "%s_gdc_brg%d", gdc_network.foot_sensor_states_[i].foot_name_.c_str(),j);
-        addVarToCollect((char *)&(gdc_network.foot_sensor_states_[i].bridge_[j]),
-                        var_name, "-", INT, 1);
-      }
-    }
   }
-#endif
 
   if( (rc = rt_mutex_release(&gdc_mutex)) )
   {
@@ -359,7 +365,7 @@ int read_user_sensors(SL_Jstate *raw, double *misc_raw) {
   //now we translate things into SL happy data
   gdc_sl_interface.translateJointStates(gdc_network.gdc_card_states_, raw);
   if(use_feet)
-	  gdc_sl_interface.translateFootSensors(gdc_network.foot_sensor_states_, misc_raw);
+	  gdc_sl_interface.translateMiscSensors(gdc_network.foot_sensor_states_, misc_raw);
 
   //read imu
   if(IMU_MODE_DONT_USE == imu_mode)
@@ -374,6 +380,9 @@ else
 	  SL_quat orientation;
 	  SL_Cstate position;
 	  double unstab_acc[3];
+    // unstab_acc[0] = 0.0;
+    // unstab_acc[1] = 0.0;
+    // unstab_acc[2] = 0.0;
 	  switch (imu_mode) {
 		case IMU_MODE_RT_STREAM:
 			double imu_time;
@@ -395,10 +404,18 @@ else
 		case IMU_MODE_NONRT_STREAM:
 			imu_interface_nonrt_stream.readData(unstab_acc, &orientation.ad[1],
 					imu_time);
+            std::cout << "acc " << unstab_acc[0] << "orient " << orientation.ad[1] << std::endl;
+
 			memcpy(&(misc_raw[B_XACC_UNSTAB_IMU]), unstab_acc, 3 * sizeof(double));
 			memcpy(&(misc_raw[B_AD_A_IMU]), &(orientation.ad[_A_]), 3 * sizeof(double));
 			misc_raw[B_TSTAMP_IMU] = imu_time;
 			break;
+    case IMU_MODE_PF_NONRT_STREAM:
+      pf_imu_interface_nonrt_stream.getAG(unstab_acc, &orientation.ad[1]);
+
+      memcpy(&(misc_raw[B_XACC_IMU]), unstab_acc, 3 * sizeof(double));
+      memcpy(&(misc_raw[B_AD_A_IMU]), &(orientation.ad[_A_]), 3 * sizeof(double));
+      break;
 		default:
 			rt_printf("bad imu_mode\n");
 			return false;
@@ -407,10 +424,6 @@ else
   }
   //TODO set a default SL value for inactive joints
 
-
-#ifdef SL_VICON
-  vicon_data.update();
-#endif
 
   if( (rc = rt_mutex_release(&gdc_mutex)) )
   {
@@ -421,10 +434,14 @@ else
 
   if(!updateOpenGL(raw, misc_raw))
   {
-    printf("ERROR>>SL_user_sensor_proc: cannot update OpenGL\n");
+    
+///////////////////////////////////////////////////////////////////////
+///////////////To avoid output
+////////////////////////////////////////////////////////////////////
+
+		//printf("ERROR>>SL_user_sensor_proc: cannot update OpenGL\n");
   }
 
-  raw_data.set_to_sm(raw, misc_raw);
 
   return TRUE;
 }
@@ -461,6 +478,7 @@ int send_user_commands(SL_Jstate *command) {
     temp_jstate[i].th = joint_des_state[i].th;
     temp_jstate[i].thd = joint_des_state[i].thd;
     temp_jstate[i].u = command[i].u;
+		//if(i == 18) printf("%f \n", joint_des_state[i].uff);
   }
 
   // translate into gdc values
@@ -513,15 +531,24 @@ int send_user_commands(SL_Jstate *command) {
     position_msg.globalSetDesPosGetActuals(gdc_network.gdc_card_states_);
     gdc_network.sendMultiCastMessage(position_msg);
 
+    //torque msg DISABLED
+    //    //hack
+    /*for(int i=0; i<(int)gdc_network.gdc_card_states_.size(); ++i)
+    {
+      if(gdc_network.gdc_card_states_[i].dof_number_ != L_KFE &&
+          gdc_network.gdc_card_states_[i].dof_number_ != L_HFE)
+      gdc_network.gdc_card_states_[i].desired_torque_ = 0;
+    }*/
+
+    hermes_communication_tools::GDCMsg torque_msg;
+    torque_msg.globalSetDesTorqueGetActuals(gdc_network.gdc_card_states_);
+    gdc_network.sendMultiCastMessage(torque_msg);
+
+
+
     //valve command
     if(valve_controller.computeValveCommands(gdc_network.gdc_card_states_, gdc_sl_interface, command))
     {
-        //we compute a special valve command for a single DOF if we are in SYS ID mode
-    	if(valve_identifier.experimentRunning())
-    	{
-    	  valve_identifier.computeValveCommands(gdc_network.gdc_card_states_);
-    	}
-
       hermes_communication_tools::GDCMsg valve_msg;
       valve_msg.globalSetDesValveGetActuals(gdc_network.gdc_card_states_);
       gdc_network.sendMultiCastMessage(valve_msg);

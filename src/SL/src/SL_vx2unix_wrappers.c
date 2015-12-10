@@ -439,7 +439,6 @@ semTake (SEM_ID semId, int timeout)
       else {
 	if (errno!=EAGAIN) {
 	  printf("SemTake(IPC_NOWAIT) exited with errno=%d\n",errno);
-	  exit(-1);
 	}
 	return ERROR;
       }

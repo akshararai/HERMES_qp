@@ -26,24 +26,10 @@ public:
     ~ArmReflex();
 
     double dT;				// sampling time
-    double A_retract;	  // Amplitude of retraction reflex, vertical modification
-    double T_retract;	  // duration of retraction reflex
-
-    double A_ext;	  // Amplitude of extension reflex, vertical modification
-    double T_ext;	  // duration of extension reflex
-
+  
     string hand_contact;
 
     bool reflexMode; // perhaps I can use bool
-
-    // member variables for retraction
-    double a_max_retract; // max acceleration
-    double v_max_retract; // max velocity
-
-    // member variables for extension
-    double a_max_ext; // max acceleration
-    double v_max_ext; // max velocity
-    double p_max_ext; // max displacement
 
     // member variables for detection
     double Fz_th;	// threshold for Fz detection

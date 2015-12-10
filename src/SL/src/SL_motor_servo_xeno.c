@@ -46,6 +46,7 @@ static void motor_servo(void *dummy);
 // local variables
 static RTIME   real_time;
 static RTIME   real_time_dt;
+static RTIME   real_time_dt_ms;
 static RTIME   start_real_time;
 static RT_TASK servo_ptr;
 static int     use_spawn = TRUE;
@@ -127,12 +128,13 @@ main(int argc, char**argv)
   if (real_time_clock_flag) {
     addVarToCollect((char *)&(real_time),"real_time","ns", INT,FALSE);
     addVarToCollect((char *)&(real_time_dt),"real_time_dt","us", INT,FALSE);
+		addVarToCollect((char *)&(real_time_dt),"real_time_dt_ms","ms", INT,FALSE); 
   }
   updateDataCollectScript();
   updateOscVars();
   setDefaultPosture();
   zero_integrator();
-
+  scd();
   // make this process real-time
   if (use_spawn) {
 
@@ -221,7 +223,8 @@ motor_servo(void *dummy)
       current_real_time = rt_timer_read();
 
       real_time      = current_real_time  - start_real_time;
-      real_time_dt   = (current_real_time  - last_real_time)/1000.0; // mirco seconds
+      real_time_dt   = (current_real_time  - last_real_time)/1000.0; // micro seconds
+			real_time_dt_ms   = (current_real_time  - last_real_time)/1000000.0; // milli seconds
       last_real_time = current_real_time;
 
       motor_servo_errors += overruns;

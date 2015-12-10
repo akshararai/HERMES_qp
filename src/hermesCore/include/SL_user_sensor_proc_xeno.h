@@ -21,19 +21,24 @@
 #ifndef SL_USER_SENSOR_PROC_XENO_H_
 #define SL_USER_SENSOR_PROC_XENO_H_
 
+#include "cga_imu.h"
 #include <native/timer.h>
 #include <native/mutex.h>
-
-#ifdef SL_VICON
-#include "sl_vicon/data_collect.h"
-#endif
 #include <gdc_common/GDCNetwork.h>
 #include <imu_common/ImuInterfaceNonRTStream.h>
 #include <imu_common/ImuInterfaceNonRT.h>
 #include <imu_common/ImuInterface.h>
-#include <valve_identifier.h>
 #include <valve_controller.h>
-
+#include <sys/mman.h>                                                                                         
+                                                                                                              
+#include <iostream>                                                                                           
+#include <string>                                                                                             
+                                                                                                              
+#include <cstdlib>                                                                                            
+#include <cstdio>                                                                                             
+#include <fcntl.h>                                                                                            
+#include <unistd.h>                                                                                           
+#include <signal.h>                                                                                           
 
 
 
@@ -41,7 +46,6 @@
 //should be accessible to other parts of the code
 extern hermes_communication_tools::GDCNetwork gdc_network;
 extern ValveController valve_controller;
-extern ValveIdentifier valve_identifier;
 
 //mutex to make the gdc_network accessible from outside sensor_proc
 extern RT_MUTEX gdc_mutex;

@@ -12,7 +12,7 @@
   Allows user specific motor servo initializations
 
   ============================================================================*/
-
+#include <cga_imu.h>
 #include <SL_user_sensor_proc_xeno.h>
 #include <limits>
 
@@ -41,12 +41,12 @@ static void changeGDCTorqueGains();
 static void changeSLTorqueGains();
 static void changeSLTorqueControllerParameters();
 static void saveGDCState();
+static void printCurrentState();
 static void whereGDCs();
+static void whereLowerGDCs();
 static void changeGDCBiases();
 static void changeDither();
 static void getPotsCalibration();
-
-static void valveID();
 
 /* local functions */
 
@@ -77,14 +77,14 @@ int init_user_motor(void)
   addToMan("chgGDCPosGains", "change the position gains", changeGDCPositionGains);
   addToMan("chgGDCTorGains", "change the torque gains", changeGDCTorqueGains);
   addToMan("saveGDCState", "dumps current gdc state  to file", saveGDCState);
+  addToMan("print all the gains","prints torque, position gains on the GDC", printCurrentState);
   addToMan("whereGDC", "print gdc actuals", whereGDCs);
+  addToMan("whereLowerGDC", "print GDC actuals for hip and knee", whereLowerGDCs);
   addToMan("changeGDCBiases", "sets the DAC bias for the valves", changeGDCBiases);
   addToMan("chgDither", "change the dither parameters for the valve", changeDither);
-  addToMan("chgSLTorqueGains", "change the SL torque gains parameters", changeSLTorqueGains);
+  addToMan("TorqueGains", "change the SL torque gains parameters", changeSLTorqueGains);
   addToMan("chgSLTorCtrParams", "change the torque controller parameters", changeSLTorqueControllerParameters);
   addToMan("getPotsCalibration","compute pots offsets and slopes", getPotsCalibration);
-
-  addToMan("valveID", "start system ID procedure for knee valve",valveID);
 
   return TRUE;
 }
@@ -128,6 +128,61 @@ static void whereGDCs()
            int(integral_saturation[current_state[i].dof_number_]));
   }
 }
+
+static void whereLowerGDCs()
+{
+  int rc;
+
+  bool integral_saturation[N_DOFS+1];
+
+  if ( (rc =rt_mutex_acquire(&gdc_mutex, TM_INFINITE)) )
+  {
+    printf("Error cannot acquire gdc mutex, error code %d\n", rc);
+    return;
+  }
+
+  //copy the state
+  std::vector<hermes_communication_tools::GDCState> current_state;
+  current_state = gdc_network.gdc_card_states_;
+
+  for(int i=1; i<=N_DOFS; ++i)
+    integral_saturation[i] = valve_controller.getIntegralSaturation(i);
+
+
+  if( (rc = rt_mutex_release(&gdc_mutex)) )
+  {
+    printf("Error cannot release mutex, error code %d\n", rc);
+    return;
+  }
+
+  printf("number \t name \t position \t velocity \t torque \t des. valve \t act. valve \t int. sat.\n");
+  for(int i=14; i<=17; ++i)
+  {
+    printf("%d %s: \t %10d \t %10d \t %10d \t %10d \t %10d \t %d\n", (i+1),
+           current_state[i].joint_name_.c_str(),
+           current_state[i].actual_position_,
+           current_state[i].actual_velocity_,
+           current_state[i].actual_torque_,
+           current_state[i].desired_valve_command_,
+           current_state[i].actual_valve_command_,
+           int(integral_saturation[current_state[i].dof_number_]));
+  }
+
+  for(int i=21; i<=24; ++i)
+  {
+    printf("%d %s: \t %10d \t %10d \t %10d \t %10d \t %10d \t %d\n", (i+1),
+           current_state[i].joint_name_.c_str(),
+           current_state[i].actual_position_,
+           current_state[i].actual_velocity_,
+           current_state[i].actual_torque_,
+           current_state[i].desired_valve_command_,
+           current_state[i].actual_valve_command_,
+           int(integral_saturation[current_state[i].dof_number_]));
+  }
+
+}
+
+
 
 static void changeDither()
 {
@@ -549,10 +604,18 @@ static void changeSLTorqueGains()
   double current_p_gain;
   double current_i_gain;
   double current_d_gain;
+  double current_theta_p_gain;
+  double current_theta_d_gain;
+  double current_torqued_d_gain;
+	int current_invert_valve_SL;
 
   double new_p_gain;
   double new_i_gain;
   double new_d_gain;
+  double new_theta_p_gain;
+  double new_theta_d_gain;
+  double new_torqued_d_gain;
+	int new_invert_valve_SL;
 
   int check = FALSE;
 
@@ -575,7 +638,7 @@ static void changeSLTorqueGains()
     return;
   }
 
-  valve_controller.getGains(joint_index, current_p_gain, current_d_gain, current_i_gain);
+  valve_controller.getGains(joint_index, current_p_gain, current_d_gain, current_i_gain, current_theta_p_gain, current_theta_d_gain, current_torqued_d_gain, current_invert_valve_SL);
 
   if( (rc = rt_mutex_release(&gdc_mutex)) )
   {
@@ -587,9 +650,14 @@ static void changeSLTorqueGains()
   get_double("New torque P gain", current_p_gain, &new_p_gain);
   get_double("New torque D gain", current_d_gain, &new_d_gain);
   get_double("New torque I gain", current_i_gain, &new_i_gain);
+  get_double("New position P gain", current_theta_p_gain, &new_theta_p_gain);
+  get_double("New position D gain", current_theta_d_gain, &new_theta_d_gain);
+  get_double("New torqued_d gain", current_torqued_d_gain, &new_torqued_d_gain);
+  get_int("New valve invert byte", current_invert_valve_SL, &new_invert_valve_SL);
 
 
-  printf("New torque gains are p=%.4f, i=%.4f, and d=%.4f.\n", new_p_gain, new_i_gain, new_d_gain);
+
+  printf("New torque gains are p=%.4f, i=%.4f, and d=%.4f., theta_p=%f., theta_d=%f., invert_valve=%g \n", new_p_gain, new_i_gain, new_d_gain, new_theta_p_gain, new_theta_d_gain, new_invert_valve_SL);
 
   get_int("Apply new gains (1) or leave gains as they are (0).", check, &check);
 
@@ -601,7 +669,7 @@ static void changeSLTorqueGains()
       return;
     }
 
-    valve_controller.setGains(joint_index, new_p_gain, new_d_gain, new_i_gain);
+    valve_controller.setGains(joint_index, new_p_gain, new_d_gain, new_i_gain, new_theta_p_gain, new_theta_d_gain, new_torqued_d_gain, new_invert_valve_SL);
 
     if( (rc = rt_mutex_release(&gdc_mutex)) )
     {
@@ -647,6 +715,48 @@ saveGDCState()
   }
 
   gdc_network_copy.saveCurrentGDCParameters(user_input_string);
+
+}
+
+static void
+printCurrentState()
+{
+
+  static int joint_index = 0;
+
+  if (!get_int("Which joint?",joint_index,&joint_index))
+    return;
+
+  if(joint_index < 1 || joint_index > N_DOFS)
+  {
+    printf("ERROR: %d is not a valid joint number.\n",joint_index);
+    return;
+  }
+
+  //find the corresponding gdc card
+  int gdc_card_index = -1;
+  for(int i=0; i<(int)gdc_network.gdc_card_states_.size(); ++i)
+  {
+    if(joint_index == gdc_network.gdc_card_states_[i].dof_number_)
+    {
+      gdc_card_index = i;
+      break;
+    }
+  }
+  if(gdc_card_index == -1)
+  {
+    rt_mutex_release(&gdc_mutex);
+    printf("Cannot find corresponding GDC card\n");
+    return;
+  }
+
+
+  printf("printCurrentState>> GDC card state:\n");
+  printf("Position P Gain: %d, I Gain: %d, D Gain: %d\n", gdc_network.gdc_card_states_[gdc_card_index].position_P_gain_, gdc_network.gdc_card_states_[gdc_card_index].position_I_gain_, gdc_network.gdc_card_states_[gdc_card_index].position_D_gain_);
+  printf("Torque P Gain: %d, I Gain: %d, D Gain: %d\n", gdc_network.gdc_card_states_[gdc_card_index].torque_P_gain_, gdc_network.gdc_card_states_[gdc_card_index].torque_I_gain_, gdc_network.gdc_card_states_[gdc_card_index].torque_D_gain_);
+  printf("Desired torque: %d \n", gdc_network.gdc_card_states_[gdc_card_index].desired_torque_ );
+  //printf("Dither Ampl: %d, Freq %d\n", gdc_network.gdc_card_states_[gdc_card_index].valve_dither_amplitude_, gdc_network.gdc_card_states_[gdc_card_index].valve_dither_frequency_);
+  //printf("Invert Byte: %d\n", gdc_network.gdc_card_states_[gdc_card_index].invert_byte_);
 
 }
 
@@ -742,10 +852,4 @@ static void getPotsCalibration()
   }
   fclose(my_file);
   fclose(my_file2);
-}
-
-
-static void valveID()
-{
-  valve_identifier.initializeExperiment();
 }

@@ -19,6 +19,9 @@
 #include <SL_user.h>
 #include <SL_motor_servo.h>
 #include <SL_collect_data.h>
+#include <iostream>
+#include "SL_sensor_proc.h"
+#include "SL_filters.h" 
 
 
 ValveController::ValveController()
@@ -26,12 +29,17 @@ ValveController::ValveController()
   proportional_gains_.resize(N_DOFS+1,0);
   integral_gains_.resize(N_DOFS+1,0);
   derivative_gains_.resize(N_DOFS+1,0);
+  theta_proportional_gains_.resize(N_DOFS+1,0);
+  theta_der_gains_.resize(N_DOFS+1,0);
 
+  invert_valve_SL_.resize(N_DOFS+1,0);
+  
   previous_error_.resize(N_DOFS+1,0);
   integral_error_.resize(N_DOFS+1,0);
 
   velocity_comp_gains_.resize(N_DOFS+1,0);
-
+  
+  k_torqued_d_.resize(N_DOFS+1,0);
   integral_error_time_window_.resize(N_DOFS+1, 1.0);
   integral_error_saturation_.resize(N_DOFS+1, 0.0);
   integral_control_saturation_.resize(N_DOFS+1, false);
@@ -47,7 +55,10 @@ ValveController::ValveController()
     sprintf(var_name, "%s_T_int_err", joint_names[i]);
     addVarToCollect((char *)&(integral_error_[i]), var_name, "-", DOUBLE, 1);
   }
-
+   /*char var_name[20];
+		sprintf(var_name, "velocity_comp");                                                        
+    addVarToCollect((char*) &(tmp1), var_name, "xx", DOUBLE, 1); 
+		*/
 }
 
 ValveController::~ValveController()
@@ -56,9 +67,12 @@ ValveController::~ValveController()
 
 bool ValveController::initialize()
 {
+
+  int i, j;
+
   //load the parameters from config file
   double tmp_values[num_controller_params_+1];
-  for (int i=1; i<= n_dofs; ++i)
+  for (i=1; i<= n_dofs; ++i)
   {
     if(!read_parameter_pool_double_array("ValveController.cf", joint_names[i], num_controller_params_, tmp_values))
     {
@@ -73,13 +87,19 @@ bool ValveController::initialize()
     velocity_comp_gains_[i] = tmp_values[6];
     valve_command_saturation_[i] = tmp_values[7];
     valve_bias_[i] = tmp_values[8];
+    printf("Proportional gain initialized for joint = %d and is = %f", i, tmp_values[11]);
+    theta_proportional_gains_[i] = tmp_values[9];
+    theta_der_gains_[i] = tmp_values[10];
+		invert_valve_SL_[i] = tmp_values[11];
+		k_torqued_d_[i] = tmp_values[12];
 
     safetyChecks(i);
   }
+
   return true;
 }
 
-void ValveController::setGains(int joint_num, double p_gain, double d_gain, double i_gain)
+void ValveController::setGains(int joint_num, double p_gain, double d_gain, double i_gain, double theta_p_gain, double theta_d_gain, double k_torque, int invert_valve_SL)
 {
   if(joint_num<1 || joint_num >N_DOFS)
     printf("ERROR - cannot change gains of joint %d. Wrong index\n", joint_num);
@@ -87,15 +107,23 @@ void ValveController::setGains(int joint_num, double p_gain, double d_gain, doub
   proportional_gains_[joint_num] = p_gain;
   derivative_gains_[joint_num] = d_gain;
   integral_gains_[joint_num] = i_gain;
-
+  theta_proportional_gains_[joint_num] = theta_p_gain;
+  theta_der_gains_[joint_num] = theta_d_gain;
+  k_torqued_d_[joint_num] = k_torque;
+  invert_valve_SL_[joint_num] = invert_valve_SL;
+  printf(" p gain = %f d gain = %f %d \n", theta_proportional_gains_[joint_num], theta_der_gains_[joint_num], joint_num);
   safetyChecks(joint_num);
 }
 
-void ValveController::getGains(int joint_num, double& p_gain, double& d_gain, double& i_gain)
+void ValveController::getGains(int joint_num, double& p_gain, double& d_gain, double& i_gain, double& theta_p_gain, double& theta_d_gain, double& k_torqued_d, int& invert_valve_SL)
 {
   p_gain = proportional_gains_[joint_num];
   i_gain = integral_gains_[joint_num];
   d_gain = derivative_gains_[joint_num];
+  theta_p_gain = theta_proportional_gains_[joint_num];
+  theta_d_gain = theta_der_gains_[joint_num];
+  k_torqued_d = k_torqued_d_[joint_num];
+  invert_valve_SL = invert_valve_SL_[joint_num];
 }
 
 bool ValveController::getIntegralSaturation(int joint_num)
@@ -191,9 +219,7 @@ void ValveController::safetyChecks(int joint_num)
   }
 }
 
-bool ValveController::computeValveCommands(std::vector<hermes_communication_tools::GDCState>& gdc_states,
-                                           GDCSLInterface& gdc_sl_interface,
-                                           SL_Jstate* j_state)
+bool ValveController::computeValveCommands(std::vector<hermes_communication_tools::GDCState>& gdc_states,   GDCSLInterface& gdc_sl_interface, SL_Jstate* j_state)
 {
   for(int i=0; i<(int)gdc_states.size(); ++i)
   {
@@ -203,11 +229,25 @@ bool ValveController::computeValveCommands(std::vector<hermes_communication_tool
 
 
     //compute the error
-    double error = double(gdc_states[i].desired_torque_ - gdc_states[i].actual_torque_);
+    //double error = double(gdc_states[i].desired_torque_ - gdc_states[i].actual_torque_);
+    double error = double(joint_state[dof_num].u - joint_state[dof_num].load); 
+
+    //double d_error = (error - previous_error_[dof_num])*double(motor_servo_rate);
     double d_error = (error - previous_error_[dof_num])*double(motor_servo_rate);
 
+
+    //compute the position error
+    //double error_pos = double(gdc_states[i].desired_position_ - gdc_states[i].actual_position_);
+    //double error_vel = (error_pos - previous_error_[dof_num])*double(motor_servo_rate);
+    //double error_pos = (joint_des_state[dof_num].th - joint_state[dof_num].th);
+    //double error_vel = (joint_des_state[dof_num].thd - joint_state[dof_num].thd);
+
+    //filtering
+    //double error_velf = error_vel; //filt(error_vel, &fthd[i]);
+
+
     //integral forgetting
-    integral_error_[dof_num] -= integral_error_[dof_num]/(integral_error_time_window_[dof_num]*double(motor_servo_rate));
+    /*integral_error_[dof_num] -= integral_error_[dof_num]/(integral_error_time_window_[dof_num]*double(motor_servo_rate));
 
     //increase integral error (times the integral gains)
     integral_error_[dof_num] += integral_gains_[dof_num] * error;
@@ -226,17 +266,18 @@ bool ValveController::computeValveCommands(std::vector<hermes_communication_tool
     }
 
     //save the previous error
-    previous_error_[dof_num] = error;
+    previous_error_[dof_num] = error;*/
 
 
     //compute the command
     double command = 0.0;
 
-    //compute the PID command
-    command +=
-        proportional_gains_[dof_num] * error +
-        integral_error_[dof_num] +
-        derivative_gains_[dof_num] * d_error;
+    //compute the PID command - without the integral
+    command += proportional_gains_[dof_num] * error + derivative_gains_[dof_num] * d_error;
+    //command += theta_proportional_gains_[dof_num] * error_pos + theta_der_gains_[dof_num] * error_vel;//+ integral_error_[dof_num];
+
+	//if(dof_num == 18) printf("feedforward valve, %f \n", k_torqued_d_[dof_num]*joint_des_state[dof_num].vff);
+	//command += k_torqued_d_[dof_num]*joint_des_state[dof_num].vff;
 
     //add the velocity compensation
     double vel;
@@ -247,8 +288,22 @@ bool ValveController::computeValveCommands(std::vector<hermes_communication_tool
     }
     command += velocity_comp_gains_[dof_num] * vel;
 
+    //if(dof_num == 18) tmp1 = velocity_comp_gains_[dof_num] * vel;
+
     //add the valve offset
     command += valve_bias_[dof_num];
+
+    //if(dof_num == 18) tmp2 = valve_bias_[dof_num];  
+    
+    //test
+    //command = 1000;
+    //add theta position proportional error
+
+
+    //command += theta_proportional_gains_[dof_num] * error_pos + theta_der_gains_[dof_num] * error_vel; // + proportional_gains_[dof_num] * gdc_states[i].actual_torque_;
+     //if(dof_num == 18) tmp3 = theta_proportional_gains_[dof_num] * error_pos + theta_der_gains_[dof_num] * error_vel;     
+
+    command = invert_valve_SL_[dof_num]*command;
 
 
     //valve command saturation
@@ -257,8 +312,6 @@ bool ValveController::computeValveCommands(std::vector<hermes_communication_tool
     else if(command < -valve_command_saturation_[dof_num])
       command = -valve_command_saturation_[dof_num];
 
-
-    //set command
     gdc_states[i].desired_valve_command_ = int16_t(command);
   }
 

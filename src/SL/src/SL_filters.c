@@ -145,6 +145,7 @@ filt(double raw, Filter *fptr)
     
   }
 
+  //printf("raw 0 =  %f, raw 1 = %f, raw 2 = %f, filt 1 =%f, fitl 2 =%f, filt 3 =%f", fptr->raw[0], fptr->raw[1], fptr->raw[2], fptr->filt[0], fptr->filt[1], fptr->filt[2]);
   fptr->raw[2]  = fptr->raw[1];
   fptr->raw[1]  = fptr->raw[0];
   fptr->filt[2] = fptr->filt[1];

@@ -28,6 +28,7 @@
 #include "SL_collect_data.h"
 #include "SL_man.h"
 #include "utility.h"
+#include "time.h"
 
 #define  MAX_CHARS 20
 
@@ -61,6 +62,7 @@ typedef struct Cinfo {
 static Cinfo  vars;              /* contains a chain of all 
 				    variables that can be
 				    collected */
+static Cinfo  old_vars;
 static Cinfo *cvars[MAX_VARS+1]; /* array to point to all variables to be 
 				    collected */
 static int    n_cvars=0;
@@ -72,6 +74,7 @@ static int    n_save_data_points=1;
 static double sampling_freq;
 static int    n_calls = 0;
 static int    collect_data_initialized = FALSE;
+static double dt;
 
 /* global variables */
 int    save_data_flag = FALSE;
@@ -421,8 +424,20 @@ saveData(void)
     fclose( in );
   }
 
-  sprintf( filename, "d%05d", file_number );
+  time_t now;
+  struct tm * timeinfo;
+  
+  char time_and_date[1000];
+  time(&now);
+  timeinfo = localtime(&now);
+  if(now != NULL)
+    strftime(time_and_date, 1000, "%m_%d_%Y_%H_%M", timeinfo);
+
+  sprintf( filename, "%s_d%05d", time_and_date,file_number );
+
   printf( "Saving data in %s\n", filename );
+  //sprintf(filename, "d%05d", file_number);
+
   file_number++;
   
   if ( ( fp = fopen( filename, "w" ) ) == NULL )  {
@@ -493,6 +508,7 @@ saveData(void)
  ******************************************************************************/
 void
 scd(void)
+
 {
   if (!collect_data_initialized) {
     printf("Collect data is not initialized\n");
@@ -543,7 +559,9 @@ startCollectData()
 
 }
 
-void scds(void)
+void
+scds(void)
+
 {
   double last_draw_time;
 

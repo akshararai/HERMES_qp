@@ -15,15 +15,6 @@
 
 ArmReflex::ArmReflex():
 dT(0.004),	// defualt value, later in config it will be assigned again
-a_max_retract(6.0),
-v_max_retract(1.0),
-A_retract(0.0),	// value will be computed before, not predetermined
-T_retract(0.0), // value will be computed before, not predetermined
-a_max_ext(5.0),
-v_max_ext(0.3),	// max velocity allowed to extend leg, coz the collision force is realted with velocity before collision
-p_max_ext(0.02),
-A_ext(0.0), // value will be computed before, not predetermined
-T_ext(0.0), // value will be computed before, not predetermined
 Fz_th(8.0),	// tuned to be good in simulation
 hand_contact("11"),
 m_remainTime(0.0),
@@ -43,13 +34,6 @@ isControllerOn(false)
     Fz_th=10.0;
     ds_Time=0.2;
     swingTime=0.5*(1.0-0.2);  // hard coded adaptation
-
-    m_remainPos<<0.0,0.0,0.0;
-    m_remainPos_left<<0.0,0.0,0.0;
-    m_remainPos_right<<0.0,0.0,0.0;
-
-    armRight.a_max_retract=a_max_retract;
-    armLeft.a_max_retract=a_max_retract;
 
     if (1)
     {
@@ -211,7 +195,7 @@ void ArmReflex::stateMachine(bool fall_trigger)
 //        armLeft.A_retract=1.0; // pass in position is with respect to the moving arm frame
 //        armLeft.T_retract=0.4;
         double Tn=1.0*armLeft.T_retract;   // response time Tn 0.5 is half of the remain time
-        double zeta=1.2;    // damping ratio
+        double zeta=1.0;    // damping ratio
         armLeft.reflexConfig(dT, Tn, zeta);
         if (1)
         {
@@ -302,7 +286,7 @@ void ArmReflex::stateMachine(bool fall_trigger)
 	{
         // apply control modification, armLeft.m_retraction
         double output=0;
-        output=armLeft.reflexRetractionOutput(armLeft.A_retract, a_max_retract);
+        output=armLeft.reflexRetractionOutput(armLeft.A_retract, armLeft.a_max_retract);
         if (0)
         {
             cout<<"Left retracting:"<<"\t"<<armLeft.A_retract<<"\t"<<armLeft.m_retraction(0)<<endl;
@@ -312,7 +296,7 @@ void ArmReflex::stateMachine(bool fall_trigger)
 	{
 		// clear control modification
         double output=0;
-        output=armLeft.reflexRetractionClear(0.0, a_max_retract);	// always clear to zero
+        output=armLeft.reflexRetractionClear(0.0, armLeft.a_max_retract);	// always clear to zero
         if (0)
         {
             cout<<"Left clearing"<<"\t"<<output<<endl;
@@ -435,11 +419,11 @@ void ArmReflex::setReflexMode(bool flag)
 /*-------  testing code, using nested classes to better wrap up for left and right arm -----------*/
 
 ArmReflex::virtualModel::virtualModel():
-    A_retract(0.7),
+    A_retract(1.0),
     T_retract(0.3), // here is the place you tune the response settling time
     A_ext(0.0),
     T_ext(10.0),
-    a_max_retract(3.0),
+    a_max_retract(20.0),
     v_max_retract(0.5),
     a_max_ext(3.0),
     v_max_ext(0.5),

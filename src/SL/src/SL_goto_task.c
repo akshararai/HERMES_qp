@@ -31,7 +31,7 @@
 static SL_DJstate *joint_goto_state;
 static SL_DJstate *joint_increment;
 static SL_DJstate *joint_special_state;
-static double goto_speed = 1.0;
+static double goto_speed = 0.25;
 static int n_steps;
 static int n_goto_steps;
 static int special_posture_flag = FALSE;

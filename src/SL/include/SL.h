@@ -117,6 +117,7 @@ typedef struct { /*!< joint space state for each DOF */
   double   ufb;  /*!< feedback portion of command */
   double   u;    /*!< torque command */
   double   load; /*!< sensed torque */
+  double	 v;
 } SL_Jstate;
 
 typedef struct { /*!< joint space state for each DOF */
@@ -126,6 +127,7 @@ typedef struct { /*!< joint space state for each DOF */
   float   ufb;  /*!< feedback portion of command */
   float   u;    /*!< torque command */
   float   load; /*!< sensed torque */
+	float		v;
 } SL_fJstate;
 
 typedef struct { /*!< desired values for controller */
@@ -133,6 +135,7 @@ typedef struct { /*!< desired values for controller */
   double   thd;  /*!< theta-dot */
   double   thdd; /*!< theta-dot-dot */
   double   uff;  /*!< feedforward torque command */
+  double	 vff;  /* feedforward valve command */
   double   uex;  /*!< externally imposed torque */
 } SL_DJstate;
 
@@ -141,16 +144,17 @@ typedef struct { /*!< desired values for controller */
   float   thd;   /*!< theta-dot */
   float   thdd;  /*!< theta-dot-dot */
   float   uff;   /*!< feedforward torque command */
+  float		vff;
   float   uex;   /*!< externally imposed torque */
 } SL_fDJstate;
 
-typedef struct {      /*!< desired values for controller: short version for faster communication */
-  char    status;     /*!< valid data or not: needed for multi processing */
-  float   th;         /*!< desired theta */
-  float   thd;        /*!< desired velocity */
-  float   uff;        /*!< feedforward command */
-  int     zero_ufb_P; /*!< zero ufb proportional part */
-  int     zero_ufb_D; /*!< zero ufb derivative part */
+typedef struct {  /*!< desired values for controller: short version for faster communication */
+  char    status; /*!< valid data or not: needed for multi processing */
+  float   th;     /*!< desired theta */
+  float   thd;    /*!< desired velocity */
+  float   uff;    /*!< feedforward command */
+  float   vff;    /*!< feedforward command */                                                                 
+
 } SL_fSDJstate;
 
 typedef struct { /*!< desired state for optimization */
@@ -349,8 +353,6 @@ extern "C" {
   extern Matrix        Jdes;
   extern Matrix        Jcog;
   extern Matrix        Jcogdes;
-  extern Matrix        Jbasecog;
-  extern Matrix        Jbasecogdes;
   extern Matrix        link_pos;
   extern Matrix        link_pos_des;
   extern Matrix        link_pos_sim;

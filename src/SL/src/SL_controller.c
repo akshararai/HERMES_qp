@@ -44,9 +44,9 @@ static double *integrator_state;
 #define PID   2
 #define PDFF  3
 #define PIDFF 4
-#define FF    5
+#define FF		5
 
-int controller_kind = PDFF;
+int controller_kind = FF;
 int power_on;
 
 
@@ -85,6 +85,7 @@ init_controller( void )
   if (firsttime) {
     firsttime = FALSE;
     u = my_vector(1,n_dofs);
+		//v =  my_vector(1,n_dofs);
     ufb = my_vector(1,n_dofs);
     upd = my_vector(1,n_dofs);
     controller_gain_th = my_vector(1,n_dofs);
@@ -148,10 +149,12 @@ controllerKind()
     printf("        PID                             ---> %d\n",PID);
     printf("        PD  + Feedforward               ---> %d\n",PDFF);
     printf("        PID + Feedforward               ---> %d\n",PIDFF);
+    printf("        Feedforward               ---> %d\n",FF);
+    
     printf("\n");
     get_int("        ----> Input",controller_kind,&aux);
 
-    if (aux > PIDFF || aux < PD) {
+    if (aux > FF || aux < PD) {
 
       goto AGAIN;
 
@@ -186,6 +189,8 @@ int
 generate_total_commands( void)
 
 {
+
+  
   int    j,i;
 
 #ifdef VX
@@ -196,6 +201,10 @@ generate_total_commands( void)
 
   if (power_on == -1) 
     return FALSE;
+
+  for (i=1; i<=n_dofs; ++i) {
+   //printf("Controller gain i is %f \n", controller_gain_th[i]);
+  }
 
 
 
@@ -278,6 +287,32 @@ generate_total_commands( void)
     }
     break;
 
+
+  case FF:                                                                                                  
+                                                                                                              
+    for (i=1; i<=n_dofs; ++i) {                                                                               
+                                                                                                              
+      /*ufb[i] = 0.0;                                                                                           
+                                                                                                              
+      if (zero_ufb_P_flag[i] > 0)                                                                             
+  --zero_ufb_P_flag[i];                                                                                       
+      else                                                                                                    
+  ufb[i] += (joint_des_state[i].th - joint_state[i].th) *                                                     
+    controller_gain_th[i];                                                                                    
+                                                                                                              
+      if (zero_ufb_D_flag[i] > 0)                                                                             
+  --zero_ufb_D_flag[i];                                                                                       
+      else                                                                                                    
+  ufb[i] += (joint_des_state[i].thd - joint_state[i].thd) *                                                   
+    controller_gain_thd[i];                                                                                   
+                                                                                                              
+      upd[i] = ufb[i];*/                                                                                        
+      u[i]   = joint_des_state[i].uff;                                                               
+			joint_state[i].v   = joint_des_state[i].vff;
+    }                                                                                                         
+    break;                                                                                                    
+
+
   case PIDFF:
  
     for (i=1; i<=n_dofs; ++i) {
@@ -303,18 +338,11 @@ generate_total_commands( void)
 
       upd[i]  = ufb[i];
       ufb[i] += integrator_state[i] * controller_gain_int[i];
-
+      
       u[i] = ufb[i] + joint_des_state[i].uff;
     }
     break;
 
-  case FF:
-
-    for (i=1; i<=n_dofs; ++i) {
-      u[i] = joint_des_state[i].uff;
-
-    }
-    break;
   default:
 
     stop("Invalid Controller");

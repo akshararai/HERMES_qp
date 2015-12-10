@@ -498,7 +498,7 @@ keyboard(unsigned char key, int x, int y)
     phi += 0.05;
     if (phi >= PI) {
       phi = PI - 0.001;
-      printf("Camera cannot turn higher\n");
+      printf("Camera cannot turn higer\n");
     }
     ptr->eye[_Z_] = distance*cos(phi) + ptr->center[_Z_];
     ptr->eye[_Y_] = ptr->center[_Y_] + distance*sin(phi)*sin(theta);
@@ -3239,7 +3239,7 @@ toggleCoordDisplay(void)
       get_int("Which link coordinate axes? All=0, or specific number",0,&iaux);
       if (iaux == 0) {
 	for (i=0; i<=n_links; ++i)
-      coordDisplayFlagsLinks[i] = TRUE;
+	  coordDisplayFlagsLinks[i] = TRUE;
       } else {
 	if (iaux > 0 && iaux <= n_links) {
 	  for (i=0; i<=n_links; ++i)
@@ -3303,20 +3303,14 @@ displayCoord(void)
   if (!coordDisplay || coordDisplayFlagsLinks == NULL)
     return;
   
-  for (i=0; i<=n_links; ++i)
-  {
+  for (i=0; i<=n_links; ++i)  {
     if (coordDisplayFlagsLinks[i])
-    {
-//      drawCoordSystem(coordAxisLength, Alink_sim[i],link_names[i]);
-    }
+      drawCoordSystem(coordAxisLength, Alink_sim[i],link_names[i]);
   }
 
-  for (i=0; i<=n_dofs; ++i)
-  {
+  for (i=0; i<=n_dofs; ++i)  {
     if (coordDisplayFlagsDOFs[i])
-    {
-//      drawCoordSystem(coordAxisLength, Adof_sim[i],joint_names[i]);
-    }
+      drawCoordSystem(coordAxisLength, Adof_sim[i],joint_names[i]);
   }
 
 

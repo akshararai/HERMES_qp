@@ -46,11 +46,6 @@ extern "C" {
   void 
   computeLinkVelocity(int lID, Matrix lp, Matrix jop, Matrix jap, 
 		      SL_Jstate *js, double *v);
-
-  void 
-  computeLinkVelocityPoint(int lID, double *point, Matrix lp, Matrix jop, Matrix jap, 
-			   SL_Jstate *js, double *v);
-
   void 
   computeConstraintJacobian(SL_Jstate *state,SL_Cstate *basec,
 			    SL_quat *baseo, SL_endeff *eff, 

@@ -94,6 +94,7 @@ typedef struct SL_fDCommands{
   float           th;   //!< desired th
   float           thd;  //!< desired thd
   float           uff;  //!< feedfoward commands
+  float						vff;
   float           upd;  //!< pd feedback command
   float           u;    //!< final command from controller.c
 } SL_fDCommands;

@@ -29,7 +29,7 @@ mytest::mytest() :
     hinvdyn_solver_(kinematics_, momentum_helper_, contact_helper_, endeff_kinematics_)
 {
     // stop data collection to avoid crashes
-    stopcd();
+    //stopcd();
     freezeBase(false);
 
     for (int i = 1; i < N_DOFS; ++i)
@@ -65,8 +65,12 @@ mytest::mytest() :
     if(!read_parameter_pool_double(config_file_.c_str(),"cog_kd",&cog_kd))
         assert(false && "reading parameter cog_kd failed");
 
-    if(!read_parameter_pool_double(config_file_.c_str(),"reflex_mag",&reflex_mag))
-        assert(false && "reading parameter reflex_mag failed");
+    if(!read_parameter_pool_double(config_file_.c_str(),"reflex_mag_sp",&reflex_mag_sp))
+        assert(false && "reading parameter reflex_mag_sp failed");
+    if(!read_parameter_pool_double(config_file_.c_str(),"reflex_mag_sr",&reflex_mag_sr))
+        assert(false && "reading parameter reflex_mag_sr failed");
+    if(!read_parameter_pool_double(config_file_.c_str(),"reflex_mag_e",&reflex_mag_e))
+        assert(false && "reading parameter reflex_mag_e failed");
     if(!read_parameter_pool_double(config_file_.c_str(),"reflex_time",&reflex_time))
         assert(false && "reading parameter reflex_time failed");
 
@@ -81,7 +85,7 @@ mytest::mytest() :
     }
 
 
-    Arm.armLeft.set_A_retract(reflex_mag);
+    Arm.armLeft.set_A_retract(1.0);
     Arm.armLeft.set_T_retract(reflex_time);
 
     rcom_init = kinematics_.cog();
@@ -215,16 +219,16 @@ int mytest::run()
     //joint_des_state[R_AFE].uff = -cog_kp*rcom(1)-cog_kd*drcom(1);
 
     // shoudler pitch
-    joint_des_state[L_SFE].th = joint_init_state[L_SFE-1] + Arm.armLeft.m_retraction(0);
-    joint_des_state[R_SFE].th = joint_init_state[R_SFE-1] + Arm.armLeft.m_retraction(0);
+    joint_des_state[L_SFE].th = joint_init_state[L_SFE-1] + reflex_mag_sp*Arm.armLeft.m_retraction(0);
+    joint_des_state[R_SFE].th = joint_init_state[R_SFE-1] + reflex_mag_sp* Arm.armLeft.m_retraction(0);
 
     // shoudler roll
-    joint_des_state[L_SAA].th = joint_init_state[L_SAA-1]-1.0*Arm.armLeft.m_retraction(0);
-    joint_des_state[R_SAA].th = joint_init_state[R_SAA-1]-1.0*Arm.armLeft.m_retraction(0);
+    joint_des_state[L_SAA].th = joint_init_state[L_SAA-1]-reflex_mag_sr*Arm.armLeft.m_retraction(0);
+    joint_des_state[R_SAA].th = joint_init_state[R_SAA-1]-reflex_mag_sr*Arm.armLeft.m_retraction(0);
 
     // elbow
-    joint_des_state[L_EB].th = joint_init_state[L_EB-1]+1.2*Arm.armLeft.m_retraction(0);
-    joint_des_state[R_EB].th = joint_init_state[R_EB-1]+1.2*Arm.armLeft.m_retraction(0);
+    joint_des_state[L_EB].th = joint_init_state[L_EB-1]+reflex_mag_e*Arm.armLeft.m_retraction(0);
+    joint_des_state[R_EB].th = joint_init_state[R_EB-1]+reflex_mag_e*Arm.armLeft.m_retraction(0);
 
     real_time = Num_loop*1.0/double(task_servo_rate);
     Num_loop++;

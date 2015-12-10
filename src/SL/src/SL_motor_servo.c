@@ -57,6 +57,7 @@ int           real_time_clock_flag  = FALSE;
 
 /* local variables */
 static int       *joint_invalid;
+static SL_Jstate *store_broadcast_joint_state; // stored state to detect canceling
 
 /* global functions */
 int  run_motor_servo(void);
@@ -98,6 +99,8 @@ init_motor_servo(void)
   if (firsttime) {
     firsttime = FALSE;
     joint_invalid               = my_ivector(1,n_dofs);
+    store_broadcast_joint_state = (SL_Jstate *) 
+      my_calloc((unsigned long)(n_dofs+1),sizeof(SL_Jstate),MY_STOP);
     zero_ufb_P_flag             = my_ivector(1,n_dofs);
     zero_ufb_D_flag             = my_ivector(1,n_dofs);
   }
@@ -173,6 +176,10 @@ init_motor_servo(void)
 		    string,"rad/s",DOUBLE,FALSE);
     sprintf(string,"%s_uff",joint_names[i]);
     addVarToCollect((char *)&(joint_des_state[i].uff),string,"Nm",DOUBLE,FALSE);
+
+    sprintf(string,"%s_vff",joint_names[i]);                                                                  
+    addVarToCollect((char *)&(joint_des_state[i].vff),string,"xx",DOUBLE,FALSE);                              
+
   }
 
   addVarToCollect((char *)&(motor_servo_errors),"MSErrors","-",INT,FALSE);
@@ -424,9 +431,9 @@ receive_commands(void)
 		       &(sm_sjoint_des_state_data[i])-1,1,FLOAT2DOUBLE);
 	}
 	// check whether the user wants to overwrite local feedback servo
-	if (sm_sjoint_des_state_data[i].zero_ufb_P)
+	if (joint_des_state[i].th == store_broadcast_joint_state[i].th)
 	  zero_ufb_P_flag[i] = task_servo_ratio;
-	if (sm_sjoint_des_state_data[i].zero_ufb_D)
+	if (joint_des_state[i].thd == store_broadcast_joint_state[i].thd)
 	  zero_ufb_D_flag[i] = task_servo_ratio;
       }
 
@@ -524,6 +531,15 @@ broadcast_sensors(void)
     sm_joint_state->ts = motor_servo_time;
 
     semGive(sm_joint_state_sem);
+
+    // store the state that was currently boradcast in order to detect
+    // if the user returns in a desired state exactly the same state
+    // as desired signal -- this means the user wants to overwrite the
+    // PD servo on the motor servo with his/her own signals -- note 
+    // that the float2double converion is important as this clipping
+    // will be done to the received state as well.
+
+    cSL_Jstate(store_broadcast_joint_state,sm_joint_state_data,n_dofs,FLOAT2DOUBLE);
 
   }
   

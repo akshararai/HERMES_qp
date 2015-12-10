@@ -22,6 +22,7 @@
 class ValveController
 {
 public:
+
   ValveController();
   virtual ~ValveController();
 
@@ -31,8 +32,8 @@ public:
                             GDCSLInterface& gdc_sl_interface,
                             SL_Jstate* j_state);
 
-  void setGains(int joint_num, double p_gain, double d_gain, double i_gain);
-  void getGains(int joint_num, double& p_gain, double& d_gain, double& i_gain);
+  void setGains(int joint_num, double p_gain, double d_gain, double i_gain, double theta_p_gain, double theta_d_gain, double k_torque, int invert_valve_SL);
+  void getGains(int joint_num, double& p_gain, double& d_gain, double& i_gain, double& theta_p_gain, double& theta_d_gain, double& k_torqued_d, int& invert_valve_SL);
 
   void getValveSaturation(int joint_num, double& valve_saturation);
   void setValveSaturation(int joint_num, double valve_saturation);
@@ -56,7 +57,11 @@ private:
   std::vector<double> proportional_gains_;
   std::vector<double> integral_gains_;
   std::vector<double> derivative_gains_;
-
+  std::vector<double> theta_proportional_gains_;
+  std::vector<double> theta_der_gains_;
+	std::vector<double> invert_valve_SL_;
+  std::vector<double> k_torqued_d_;
+  
   //the integral error has an exponential forgetting factor
   //canceling in 1 time step is done if it is set to 1/motor_servo_rate
   std::vector<double> integral_error_time_window_;
@@ -72,7 +77,7 @@ private:
   std::vector<double> valve_bias_;
 
 
-  static const int num_controller_params_ = 8;
+  static const int num_controller_params_ = 12;
 
 };
 

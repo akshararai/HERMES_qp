@@ -7,8 +7,10 @@ cog_kp 500.0
 cog_kd 50.0
 
 /* Units in radius and second */
-reflex_mag 0.9	
+reflex_mag_sp 0.8
+reflex_mag_sr 0.2
+reflex_mag_e 0.6	
 reflex_time 0.3
 
 /* threshold for triggering capture point */
-stability_margin 0.1
+stability_margin 0.07

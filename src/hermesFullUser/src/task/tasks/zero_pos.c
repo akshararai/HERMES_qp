@@ -92,32 +92,32 @@ init_zero_task(void)
 
   printf("Reached %d \n", N_DOFS);
   target[L_SFE].th  = -0.35;
-  target[L_SAA].th = -0.4;
+  target[L_SAA].th = -0.6;
   target[L_HR].th = 0.0;
   target[L_EB].th = 0.2;
   target[L_WR].th = 0.0;
   target[L_WFE].th = 0.1;
   target[L_WAA].th = 0.0;
 
-  target[R_SFE].th  = -0.2;
-  target[R_SAA].th = -0.4;
+  target[R_SFE].th  = -0.05;
+  target[R_SAA].th = -0.6;
   target[R_HR].th = 0.0;
-  target[R_EB].th = 0.2;
+  target[R_EB].th = 0.1;
   target[R_WR].th = 0.0;
   target[R_WFE].th = 0.0;
   target[R_WAA].th = 0.0;
 
   target[L_HFE].th = 0.2;
-  target[L_HAA].th = -0.1;
+  target[L_HAA].th = -0.15;
   target[L_HFR].th = 0.0;
   target[L_KFE].th = 0.25;
   target[L_AR].th = 0.0;
-  target[L_AFE].th = 0.3;
+  target[L_AFE].th = 0.35;
   target[L_AAA].th = 0.05;
 
 
   target[R_HFE].th = 0.25;
-  target[R_HAA].th = -0.05;
+  target[R_HAA].th = -0.1;
   target[R_HFR].th = 0.0;
   target[R_KFE].th = 0.3;
   target[R_AR].th = 0.1;
@@ -126,7 +126,7 @@ init_zero_task(void)
 
   target[B_TR].th = -0.3;
   target[B_TAA].th = 0.0;
-  target[B_TFE].th = 0.0;
+  target[B_TFE].th = -0.17;
 
   printf("Reached 2 \n");
 

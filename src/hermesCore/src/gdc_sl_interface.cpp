@@ -17,6 +17,19 @@
 #include <cstdio>
 #include <cmath>
 #include <SL_sensor_proc.h>
+#include "SL_collect_data.h"                                                                                  
+
+
+double tmp0;
+//double tmp1;
+//double tmp2;
+//double tmp3;
+//double tmp4;
+//double tmp5;
+
+
+
+char       string[100]; 
 
 GDCSLInterface::GDCSLInterface()
 {
@@ -61,51 +74,28 @@ bool GDCSLInterface::computePistonVelocity(int dof_num, double joint_angle, doub
   double l1 = joint_geometry_[dof_num][MAIN_LINK_TO_PISTON];
 
   //compute the partial derivative of the piston length with respect to joint angle
-  switch(int(joint_geometry_[dof_num][ACTUATOR]))
+  if( a == 0) //simple case e is the piston length
   {
-    //just use the current joint velocity
-    case ROTARY:
-    {
-      piston_velocity = 1.0;
-      break;
-    }
-    //simple case e is the piston length
-    case LINEAR_SIMPLE:
-    {
-      piston_velocity = c*d*sin(alpha)/sqrt(c*c - 2*c*d*cos(alpha) + d*d);
-      break;
-    }
-    //4 bar linkage case
-    case LINEAR_4_BAR:
-    {
-      if(fmod(alpha,2*M_PI)>M_PI)
-        piston_velocity = f*l1*(-(-d*(2*c*c - 2*c*d*cos(alpha))*sin(alpha)/(2*pow(c*c - 2*c*d*cos(alpha) + d*d, 3.0/2.0)) + d*sin(alpha)/sqrt(c*c - 2*c*d*cos(alpha) + d*d))/sqrt(1 - pow(2*c*c - 2*c*d*cos(alpha), 2)/(4*c*c*(c*c - 2*c*d*cos(alpha) + d*d))) + (c*d*sin(alpha)/(b*sqrt(c*c - 2*c*d*cos(alpha) + d*d)) - c*d*(-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)*sin(alpha)/(2*b*pow(c*c - 2*c*d*cos(alpha) + d*d, 3.0/2.0)))/sqrt(1 - pow(-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d, 2)/(4*b*b*(c*c - 2*c*d*cos(alpha) + d*d))))*sin(beta - acos((-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)/(2*b*sqrt(c*c - 2*c*d*cos(alpha) + d*d))) + acos((2*c*c - 2*c*d*cos(alpha))/(2*c*sqrt(c*c - 2*c*d*cos(alpha) + d*d))))/sqrt(f*f - 2*f*l1*cos(beta - acos((-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)/(2*b*sqrt(c*c - 2*c*d*cos(alpha) + d*d))) + acos((2*c*c - 2*c*d*cos(alpha))/(2*c*sqrt(c*c - 2*c*d*cos(alpha) + d*d)))) + l1*l1);
-      else
-        piston_velocity = f*l1*(-(-d*(2*c*c - 2*c*d*cos(alpha))*sin(alpha)/(2*pow(c*c - 2*c*d*cos(alpha) + d*d, 3.0/2.0)) + d*sin(alpha)/sqrt(c*c - 2*c*d*cos(alpha) + d*d))/sqrt(1 - pow(2*c*c - 2*c*d*cos(alpha), 2)/(4*c*c*(c*c - 2*c*d*cos(alpha) + d*d))) - (c*d*sin(alpha)/(b*sqrt(c*c - 2*c*d*cos(alpha) + d*d)) - c*d*(-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)*sin(alpha)/(2*b*pow(c*c - 2*c*d*cos(alpha) + d*d, 3.0/2.0)))/sqrt(1 - pow(-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d, 2)/(4*b*b*(c*c - 2*c*d*cos(alpha) + d*d))))*sin(-beta + acos((-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)/(2*b*sqrt(c*c - 2*c*d*cos(alpha) + d*d))) + acos((2*c*c - 2*c*d*cos(alpha))/(2*c*sqrt(c*c - 2*c*d*cos(alpha) + d*d))))/sqrt(f*f - 2*f*l1*cos(-beta + acos((-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)/(2*b*sqrt(c*c - 2*c*d*cos(alpha) + d*d))) + acos((2*c*c - 2*c*d*cos(alpha))/(2*c*sqrt(c*c - 2*c*d*cos(alpha) + d*d)))) + l1*l1);
-      break;
-    }
-    case LINEAR_HFR:
-    {
-      //HACK for the weird HFR TODO compute the real piston velocity
-      piston_velocity = 1.0;
-      break;
-    }
-    case LINEAR_EXTENDED:
-    {
-      piston_velocity = -d * sin(joint_geometry_[dof_num][THETA0] - 0.5*joint_angle);
-      break;
-    }
-    default:
-    {
-      printf("ERROR unkown actuator type %d for joint %d - setting piston velocity to 0\n",int(joint_geometry_[dof_num][ACTUATOR]), dof_num);
-      piston_velocity = 0.0;
-      return false;
-    }
+    piston_velocity = c*d*sin(alpha)/sqrt(c*c - 2*c*d*cos(alpha) + d*d);
+  }
+  else //the quadrilateral version
+  {
+    if(fmod(alpha,2*M_PI)>M_PI)
+      piston_velocity = f*l1*(-(-d*(2*c*c - 2*c*d*cos(alpha))*sin(alpha)/(2*pow(c*c - 2*c*d*cos(alpha) + d*d, 3.0/2.0)) + d*sin(alpha)/sqrt(c*c - 2*c*d*cos(alpha) + d*d))/sqrt(1 - pow(2*c*c - 2*c*d*cos(alpha), 2)/(4*c*c*(c*c - 2*c*d*cos(alpha) + d*d))) + (c*d*sin(alpha)/(b*sqrt(c*c - 2*c*d*cos(alpha) + d*d)) - c*d*(-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)*sin(alpha)/(2*b*pow(c*c - 2*c*d*cos(alpha) + d*d, 3.0/2.0)))/sqrt(1 - pow(-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d, 2)/(4*b*b*(c*c - 2*c*d*cos(alpha) + d*d))))*sin(beta - acos((-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)/(2*b*sqrt(c*c - 2*c*d*cos(alpha) + d*d))) + acos((2*c*c - 2*c*d*cos(alpha))/(2*c*sqrt(c*c - 2*c*d*cos(alpha) + d*d))))/sqrt(f*f - 2*f*l1*cos(beta - acos((-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)/(2*b*sqrt(c*c - 2*c*d*cos(alpha) + d*d))) + acos((2*c*c - 2*c*d*cos(alpha))/(2*c*sqrt(c*c - 2*c*d*cos(alpha) + d*d)))) + l1*l1);
+    else
+      piston_velocity = f*l1*(-(-d*(2*c*c - 2*c*d*cos(alpha))*sin(alpha)/(2*pow(c*c - 2*c*d*cos(alpha) + d*d, 3.0/2.0)) + d*sin(alpha)/sqrt(c*c - 2*c*d*cos(alpha) + d*d))/sqrt(1 - pow(2*c*c - 2*c*d*cos(alpha), 2)/(4*c*c*(c*c - 2*c*d*cos(alpha) + d*d))) - (c*d*sin(alpha)/(b*sqrt(c*c - 2*c*d*cos(alpha) + d*d)) - c*d*(-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)*sin(alpha)/(2*b*pow(c*c - 2*c*d*cos(alpha) + d*d, 3.0/2.0)))/sqrt(1 - pow(-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d, 2)/(4*b*b*(c*c - 2*c*d*cos(alpha) + d*d))))*sin(-beta + acos((-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)/(2*b*sqrt(c*c - 2*c*d*cos(alpha) + d*d))) + acos((2*c*c - 2*c*d*cos(alpha))/(2*c*sqrt(c*c - 2*c*d*cos(alpha) + d*d))))/sqrt(f*f - 2*f*l1*cos(-beta + acos((-a*a + b*b + c*c - 2*c*d*cos(alpha) + d*d)/(2*b*sqrt(c*c - 2*c*d*cos(alpha) + d*d))) + acos((2*c*c - 2*c*d*cos(alpha))/(2*c*sqrt(c*c - 2*c*d*cos(alpha) + d*d)))) + l1*l1);
   }
 
   //multiply by joint angle velocity to get piston velocity
   piston_velocity *= joint_velocity;
 
+#ifdef HAS_LOWER_BODY
+  //HACK for the weird HFR TODO compute the real piston velocity
+  if(dof_num == L_HFR || dof_num == R_HFR)
+  {
+    piston_velocity = joint_velocity;
+  }
+#endif
   return true;
 }
 
@@ -122,59 +112,29 @@ bool GDCSLInterface::computeMomentArm(int dof_num, double theta, double &moment_
   //get the distance between a-d and b-c
   double e = sqrt(sqr(d) + sqr(c) - 2*c*d*cos(alpha));
 
-  double beta = PI/2.0;
-
+  //get the angle d-e
+  double beta = acos( (sqr(e) + sqr(d) - sqr(c)) / (2*e*d));
 
   //we do not need to compute beta2 in the case of a triangle
-  //rotary is never an option here (there are no moment arms for rotary)
-  switch(int(joint_geometry_[dof_num][ACTUATOR]))
+  if(a != 0.0)
   {
-    //we do nothing for the triangle
-    case LINEAR_SIMPLE:
-    {
-      //get the angle d-e
-      beta = acos( (sqr(e) + sqr(d) - sqr(c)) / (2*e*d));
+    // get the angle a-e if the quadrilateral abcd is not degenerate
+    double beta2 = acos ( (sqr(e) + sqr(a) - sqr(b)) / (2*e*a));//get the angle a-e
 
-      break;
-    }
-    //4 bar linkage case
-    case LINEAR_4_BAR:
-    {
-      //get the angle d-e
-      beta = acos( (sqr(e) + sqr(d) - sqr(c)) / (2*e*d));
-
-      // get the angle a-e if the quadrilateral abcd is not degenerate
-      double beta2 = acos ( (sqr(e) + sqr(a) - sqr(b)) / (2*e*a));//get the angle a-e
-
-      //check if the quadrilateral is convex to compute the right angle
-      if(fmod(alpha,2*M_PI)>M_PI)
-        beta = beta2 - beta;//we need to subtract beta1 from beta2
-      else
-        beta = beta2 + beta;
-
-      break;
-    }
-    case LINEAR_HFR:
-    {
-      //HACK for the weird HFR
-      beta = alpha;
-
-      break;
-    }
-    case LINEAR_EXTENDED:
-    {
-      beta = joint_geometry_[dof_num][THETA0] - 0.5*theta;
-      break;
-    }
-    default:
-    {
-      printf("ERROR unkown actuator type %d for joint %d - setting beta to pi/2\n",int(joint_geometry_[dof_num][ACTUATOR]), dof_num);
-      beta = PI/2.0;
-      return false;
-      break;
-    }
+    //check if the quadrilateral is convex to compute the right angle
+    if(fmod(alpha,2*M_PI)>M_PI)
+      beta = beta2 - beta;//we need to subtract beta1 from beta2
+    else
+      beta = beta2 + beta;
   }
 
+#ifdef HAS_LOWER_BODY
+  //HACK for the weird HFR
+  if(dof_num == L_HFR || dof_num == R_HFR)
+  {
+    beta = alpha;
+  }
+#endif
 
   moment_arm = d * sin(beta);
 
@@ -198,7 +158,7 @@ bool GDCSLInterface::translateJointStates(const std::vector<hermes_communication
     {
       temp = -(sqr(j_state[dof_num].th)-sqr(joint_geometry_[dof_num][MOMENTARM]) -
           sqr(joint_geometry_[dof_num][MOUNTPOINT])) /
-              (2.*joint_geometry_[dof_num][MOMENTARM]*joint_geometry_[dof_num][MOUNTPOINT]);
+          (2.*joint_geometry_[dof_num][MOMENTARM]*joint_geometry_[dof_num][MOUNTPOINT]);
       j_state[dof_num].th = acos(temp);
     }
     j_state[dof_num].th*= pos_polar[dof_num];
@@ -247,7 +207,7 @@ bool GDCSLInterface::translateJointStates(const std::vector<hermes_communication
   return true;
 }
 
-bool GDCSLInterface::translateFootSensors(const std::vector<hermes_communication_tools::FootSensorState>& foot_states,
+bool GDCSLInterface::translateMiscSensors(const std::vector<hermes_communication_tools::FootSensorState>& foot_states,
                                           double* misc_sensors)
 {
   int i,j,n;
@@ -281,7 +241,7 @@ bool GDCSLInterface::translateFootSensors(const std::vector<hermes_communication
       }
     }
   }
-
+  
   //get the acceleration on the foot
   for(int j=0; j<2; ++j)
   {
@@ -293,6 +253,20 @@ bool GDCSLInterface::translateFootSensors(const std::vector<hermes_communication
   }
 #endif
 
+  //TODO add the IMU stuff
+//  misc_sensors[B_Q0_IMU] = 1.0;
+//  misc_sensors[B_Q1_IMU] = 0.0;
+//  misc_sensors[B_Q2_IMU] = 0.0;
+//  misc_sensors[B_Q3_IMU] = 0.0;
+//  misc_sensors[B_AD_A_IMU] = 0.0;
+//  misc_sensors[B_AD_B_IMU] = 0.0;
+//  misc_sensors[B_AD_G_IMU] = 0.0;
+//  misc_sensors[B_XVEL_IMU] = 0.0;
+//  misc_sensors[B_YVEL_IMU] = 0.0;
+//  misc_sensors[B_ZVEL_IMU] = 0.0;
+//  misc_sensors[B_XACC_IMU] = 0.0;
+//  misc_sensors[B_YACC_IMU] = 0.0;
+//  misc_sensors[B_ZACC_IMU] = 0.0;
 
   return true;
 }
@@ -342,11 +316,35 @@ bool GDCSLInterface::translateCommands(SL_Jstate* command, SL_Jstate* j_state,
 
 
     ///////////FORCE/TORQUE//////////////////
+
+    ////////////////////////////////////temporary ////////////////////////////////////
     double temp_command = command[dof_num].u;
-    if(joint_geometry_[dof_num][LOADCELL] == LINEAR)
+      sprintf(string,"tmp0");                                                                                 
+    addVarToCollect((char *)&(tmp0),string,"xx", DOUBLE,FALSE);                                               
+                                                                                                              
+      //sprintf(string,"tmp1");                                                                                 
+    //addVarToCollect((char *)&(tmp1),string,"xx", DOUBLE,FALSE);                                               
+                                                                                                              
+      /*sprintf(string,"tmp2");                                                                                 
+    addVarToCollect((char *)&(tmp2),string,"xx", DOUBLE,FALSE);                                               
+
+      sprintf(string,"tmp3");                                                                                 
+    addVarToCollect((char *)&(tmp2),string,"xx", DOUBLE,FALSE);                                               
+
+      sprintf(string,"tmp4");                                                                                 
+    addVarToCollect((char *)&(tmp2),string,"xx", DOUBLE,FALSE);                                               
+
+      sprintf(string,"tmp5");                                                                                 
+    addVarToCollect((char *)&(tmp2),string,"xx", DOUBLE,FALSE);                                               
+		
+    if(dof_num == 15) {
+			//printf("%f \n", command[dof_num].u);
+			tmp0 =  command[dof_num].u;
+		}*/
+    if(joint_geometry_[dof_num][ACTUATOR] == LINEAR)
     {
-      double moment_arm = 0.0;
-      if(computeMomentArm(dof_num, j_state[dof_num].th, moment_arm) && (fabs(moment_arm)>10e-3))
+      double moment_arm;
+      if(computeMomentArm(dof_num, j_state[dof_num].th, moment_arm))
       {
         temp_command = temp_command / moment_arm;
       }
@@ -510,93 +508,6 @@ bool GDCSLInterface::read_sensor_calibration()
         printf("ERROR: cannot read joint geometry %d\n",i);
         return false;
       }
-
-      //sanity check to make sure the actuator parameters make sense
-      switch(int(joint_geometry_[i][ACTUATOR]))
-      {
-        case ROTARY:
-        {
-          if((joint_geometry_[i][MOMENTARM] != 0.0) ||
-              (joint_geometry_[i][MOUNTPOINT] != 0.0) ||
-              (joint_geometry_[i][LOAD_CELL_LENGTH] != 0.0) ||
-              (joint_geometry_[i][MAIN_LINK_LENGTH] != 0.0) ||
-              (joint_geometry_[i][THETA0] != 0.0) ||
-              (joint_geometry_[i][MAIN_LINK_TO_PISTON] != 0.0) ||
-              (joint_geometry_[i][PISTON_ATTACHEMENT] != 0.0) ||
-              (joint_geometry_[i][ANGLE_MAIN_PISTON] != 0.0))
-          {
-            printf("ERROR: ROTARY parameters are not correct for actuator %d\n",i);
-            return false;
-          }
-          break;
-        }
-        case LINEAR_SIMPLE:
-        {
-          if((joint_geometry_[i][MOMENTARM] == 0.0) ||
-              (joint_geometry_[i][MOUNTPOINT] == 0.0) ||
-              (joint_geometry_[i][LOAD_CELL_LENGTH] != 0.0) ||
-              (joint_geometry_[i][MAIN_LINK_LENGTH] != 0.0) ||
-              (joint_geometry_[i][MAIN_LINK_TO_PISTON] != 0.0) ||
-              (joint_geometry_[i][PISTON_ATTACHEMENT] != 0.0) ||
-              (joint_geometry_[i][ANGLE_MAIN_PISTON] != 0.0))
-          {
-            printf("ERROR: LINEAR_SIMPLE parameters are not correct for actuator %d\n",i);
-            return false;
-          }
-          break;
-        }
-        case LINEAR_4_BAR:
-        {
-          if((joint_geometry_[i][MOMENTARM] == 0.0) ||
-              (joint_geometry_[i][MOUNTPOINT] == 0.0) ||
-              (joint_geometry_[i][LOAD_CELL_LENGTH] == 0.0) ||
-              (joint_geometry_[i][MAIN_LINK_LENGTH] == 0.0) ||
-              (joint_geometry_[i][MAIN_LINK_TO_PISTON] == 0.0) ||
-              (joint_geometry_[i][PISTON_ATTACHEMENT] == 0.0) ||
-              (joint_geometry_[i][ANGLE_MAIN_PISTON] == 0.0))
-          {
-            printf("ERROR: LINEAR_4_BAR parameters are not correct for actuator %d\n",i);
-            return false;
-          }
-          break;
-        }
-        case LINEAR_HFR:
-        {
-          if((joint_geometry_[i][MOMENTARM] == 0.0) ||
-              (joint_geometry_[i][MOUNTPOINT] != 0.0) ||
-              (joint_geometry_[i][LOAD_CELL_LENGTH] != 0.0) ||
-              (joint_geometry_[i][MAIN_LINK_LENGTH] != 0.0) ||
-              (joint_geometry_[i][MAIN_LINK_TO_PISTON] != 0.0) ||
-              (joint_geometry_[i][PISTON_ATTACHEMENT] != 0.0) ||
-              (joint_geometry_[i][ANGLE_MAIN_PISTON] != 0.0))
-          {
-            printf("ERROR: LINEAR_HFR parameters are not correct for actuator %d\n",i);
-            return false;
-          }
-          break;
-        }
-        case LINEAR_EXTENDED:
-        {
-          if((joint_geometry_[i][MOMENTARM] == 0.0) ||
-              (joint_geometry_[i][MOUNTPOINT] != 0.0) ||
-              (joint_geometry_[i][LOAD_CELL_LENGTH] != 0.0) ||
-              (joint_geometry_[i][MAIN_LINK_LENGTH] != 0.0) ||
-              (joint_geometry_[i][MAIN_LINK_TO_PISTON] != 0.0) ||
-              (joint_geometry_[i][PISTON_ATTACHEMENT] != 0.0) ||
-              (joint_geometry_[i][ANGLE_MAIN_PISTON] != 0.0))
-          {
-            printf("ERROR: LINEAR EXTENDED parameters are not correct for actuator %d\n",i);
-            return false;
-          }
-          break;
-        }
-        default:
-        {
-          printf("WARNING actuator %d DOES NOT HAVE A PROPER CONFIG\n");
-          return false;
-        }
-      }
-
     }
   }
 

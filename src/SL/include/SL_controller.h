@@ -35,7 +35,6 @@ void zero_integrator(void);
 void setGains(int);
 void setGainsSim(void);
 int  stop(char *);
-void changeControllerOnline(int);
 
 #ifdef __cplusplus
 }
