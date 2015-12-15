@@ -52,9 +52,16 @@ namespace wholebody_demo
         mytest();
         ~mytest();
 
-        ArmReflex Arm;
+      Vector3d drcom;
+      Vector3d rcom;
+      Vector3d rcom_init;
+      double CapturePoint;
+      double output;
+      VectorXd joint_init_state;
+      
+      ArmReflex Arm;
 
-        int run();
+      int run();
 
     private:
         // we will use a config file to tune parameters conveniently
@@ -104,8 +111,10 @@ namespace wholebody_demo
         double cog_kp; //=500.0;
         double cog_kd; //=50.0;
 
-        double reflex_mag;
-        double reflex_time;
+      double reflex_mag_sp;
+      double reflex_mag_sr;
+      double reflex_mag_e;
+      double reflex_time;
 
         double m_yaw;
         double m_roll;
