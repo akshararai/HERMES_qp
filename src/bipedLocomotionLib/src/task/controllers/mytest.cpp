@@ -18,6 +18,7 @@
 namespace wholebody_demo
 {
 mytest::mytest() :
+    sampleT(1.0/double(task_servo_rate)),
     config_file_("mytestConfig.cf"),
     task_start_time(0.0),
     real_time(0.0),
@@ -26,6 +27,8 @@ mytest::mytest() :
     stability_margin(0.10),
     cog_kp(500.0),
     cog_kd(50.0),
+    torso_des(0.0),
+    torso_pitch_kp(0.0),
     hinvdyn_solver_(kinematics_, momentum_helper_, contact_helper_, endeff_kinematics_)
 {
     // stop data collection to avoid crashes
@@ -77,6 +80,9 @@ mytest::mytest() :
     if(!read_parameter_pool_double(config_file_.c_str(),"stability_margin",&stability_margin))
         assert(false && "reading parameter stability_margin failed");    
 
+    if(!read_parameter_pool_double(config_file_.c_str(),"torso_pitch_kp",&torso_pitch_kp))
+        assert(false && "reading parameter torso_pitch_kp failed");
+
     joint_init_state.resize(N_DOFS);
 
 
@@ -84,9 +90,14 @@ mytest::mytest() :
         joint_init_state(i) = joint_des_state[i+1].th;
     }
 
+    // set the pattern to be 1.0 unit
+    Arm.shoulder.set_A_retract(1.0);
+    Arm.shoulder.set_T_retract(reflex_time);
 
-    Arm.armLeft.set_A_retract(1.0);
-    Arm.armLeft.set_T_retract(reflex_time);
+    Arm.elbow.set_A_retract(1.0);
+    Arm.elbow.set_T_retract(reflex_time);
+
+    Arm.setSamplingTime(sampleT);
 
     rcom_init = kinematics_.cog();
 
@@ -94,13 +105,12 @@ mytest::mytest() :
     updateDataCollectScript();
     scd();
 
-
     cout << "Initialization done." << endl;
 
     cout << "N_DOFS: " << N_DOFS << endl;
     cout << "n_dofs: " << n_dofs << endl;
 
-    cout << "COM: " << kinematics_.cog() << endl;;
+    cout << "COM: " << kinematics_.cog() << endl;
 
     addVarToCollect((char *)&(rcom[0]), "cog_x","m",DOUBLE,TRUE);
     addVarToCollect((char *)&(rcom[1]), "cog_y","m",DOUBLE,TRUE);
@@ -121,7 +131,7 @@ mytest::~mytest()
 
 int mytest::run()
 {
-    double sim_time, roundup;
+    double output, sim_time, roundup;
 
     sim_time = task_servo_time - task_start_time;
 //    cout << "rt time " << real_time << "\tsim_time "<< sim_time << "\t"; // << endl;
@@ -129,7 +139,7 @@ int mytest::run()
 //    cout << "delta time "<< sim_time-real_time << endl;
 
     roundup = ceil(real_time);
-    if ( abs(real_time-roundup)<= 1.0/double(task_servo_rate) ) // task_servo_rate=1000
+    if ( abs(real_time-roundup)<= sampleT ) // task_servo_rate=1000
     {
         //cout << "time: "<<real_time; // <<endl;
         //cout << "\tfall? " << isFall << "\t";
@@ -139,7 +149,7 @@ int mytest::run()
     // simulate a push
     if(!real_robot_flag)
     {
-        if( real_time >= push_time &&real_time <= push_time + 1.0/double(task_servo_rate))
+        if( real_time >= push_time &&real_time <= push_time + sampleT)
         {
 //            cout << "push: " << push_force << "N\tDuration: "<< push_duration <<" s" << endl;
         }
@@ -183,8 +193,28 @@ int mytest::run()
     }
 //    cout << "fall? "<< isFall << endl;
 
-    Arm.reflex(isFall);
-    output = Arm.armLeft.m_retraction(0);
+    VectorXd leftArm;
+    leftArm=VectorXd::Zero(6);
+    leftArm<< joint_state[L_SFE].load,
+            joint_state[L_SAA].load,
+            joint_state[L_HR].load,
+            joint_state[L_EB].load,
+            joint_state[L_WR].load,
+            joint_state[L_WFE].load;
+
+    VectorXd rightArm;
+    rightArm=VectorXd::Zero(6);
+    rightArm<< joint_state[L_SFE].load,
+            joint_state[L_SAA].load,
+            joint_state[L_HR].load,
+            joint_state[L_EB].load,
+            joint_state[L_WR].load,
+            joint_state[L_WFE].load;
+
+//    cout<<leftArm.norm()<<"\t"<<rightArm.norm()<<endl;
+
+    Arm.reflex(isFall, leftArm, rightArm);
+    output = Arm.shoulder.m_retraction(0);
 //    cout << "fall? " << isFall << "\t";
 //    cout << "reflex "<< output << endl;
 
@@ -194,6 +224,14 @@ int mytest::run()
 //    double transition = min(1., task_servo_time - task_start_time_);
     //cout << "transition " << transition << endl;
 
+    getEuler();
+//    cout << "pitch " << m_pitch << endl;
+//    cout << "torso_pitch_th " << torso_pitch_th << endl;
+    if( real_time >= 0.2*push_time)
+    {
+        attitudeControl();
+        torso_pitch_th +=torso_pitch_w*sampleT;
+    }
 
     /* servo control */
     for(int i=1; i<=N_DOFS; ++i)
@@ -215,26 +253,61 @@ int mytest::run()
     }
 
 
-    //joint_des_state[L_AFE].uff = -cog_kp*rcom(1)-cog_kd*drcom(1);
-    //joint_des_state[R_AFE].uff = -cog_kp*rcom(1)-cog_kd*drcom(1);
+    // control body upright by servoing hip pitch joints
+    joint_des_state[L_HFE].th = joint_init_state[L_HFE-1] - torso_pitch_th;
+    joint_des_state[R_HFE].th = joint_init_state[R_HFE-1] - torso_pitch_th;
+
+
+    // feedforward ankle torque for partial gravity compensation
+    joint_des_state[L_AFE].uff = cog_kp*(0.10-rcom(1))-cog_kd*drcom(1);
+    joint_des_state[R_AFE].uff = cog_kp*(0.10-rcom(1))-cog_kd*drcom(1);
 
     // shoudler pitch
-    joint_des_state[L_SFE].th = joint_init_state[L_SFE-1] + reflex_mag_sp*Arm.armLeft.m_retraction(0);
-    joint_des_state[R_SFE].th = joint_init_state[R_SFE-1] + reflex_mag_sp* Arm.armLeft.m_retraction(0);
+    joint_des_state[L_SFE].th = joint_init_state[L_SFE-1] + reflex_mag_sp*Arm.shoulder.m_retraction(0);
+    joint_des_state[R_SFE].th = joint_init_state[R_SFE-1] + reflex_mag_sp* Arm.shoulder.m_retraction(0);
 
     // shoudler roll
-    joint_des_state[L_SAA].th = joint_init_state[L_SAA-1]-reflex_mag_sr*Arm.armLeft.m_retraction(0);
-    joint_des_state[R_SAA].th = joint_init_state[R_SAA-1]-reflex_mag_sr*Arm.armLeft.m_retraction(0);
+    joint_des_state[L_SAA].th = joint_init_state[L_SAA-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
+    joint_des_state[R_SAA].th = joint_init_state[R_SAA-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
 
     // elbow
-    joint_des_state[L_EB].th = joint_init_state[L_EB-1]+reflex_mag_e*Arm.armLeft.m_retraction(0);
-    joint_des_state[R_EB].th = joint_init_state[R_EB-1]+reflex_mag_e*Arm.armLeft.m_retraction(0);
+    joint_des_state[L_EB].th = joint_init_state[L_EB-1]+reflex_mag_e*Arm.elbow.m_retraction(0);
+    joint_des_state[R_EB].th = joint_init_state[R_EB-1]+reflex_mag_e*Arm.elbow.m_retraction(0);
 
-    real_time = Num_loop*1.0/double(task_servo_rate);
+
+//    cout<<joint_state[L_EB].load+joint_state[L_SFE].load<<"\t"<<joint_state[R_EB].load+joint_state[R_SFE].load<<endl;
+//    cout<<joint_state[L_AFE].load+joint_state[R_AFE].load<<" \t"<<joint_state[L_AFE].u+joint_state[R_AFE].u<<endl;
+
+    real_time = Num_loop*sampleT;
     Num_loop++;
 
     return TRUE;
 }
+
+
+
+void mytest::getEuler()
+{
+    double q0 = base_orient.q[_Q0_];
+    double q1 = base_orient.q[_Q1_];
+    double q2 = base_orient.q[_Q2_];
+    double q3 = base_orient.q[_Q3_];
+
+    double pitch_old = m_pitch;
+    m_yaw = atan2(2.0*(q0*q3 + q1*q2),1.0 - 2.0*(q2*q2 + q3*q3)); // yaw
+    m_roll = asin(2.0*(q0*q2 - q3*q1)); // roll
+    m_pitch = atan2(2.0*(q0*q1 + q2*q3),1.0 - 2.0*(q1*q1 + q2*q2)); // pitch
+    m_dpitch = (m_pitch-pitch_old)/sampleT;
+}
+
+
+
+void mytest::attitudeControl()
+{
+    torso_pitch_w = torso_pitch_kp*(torso_des-m_pitch)-torso_pitch_kd*m_dpitch;
+}
+
+
 
 }  // Namespace
  

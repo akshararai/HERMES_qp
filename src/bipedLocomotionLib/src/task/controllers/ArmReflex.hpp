@@ -33,23 +33,12 @@ public:
 
     // member variables for detection
     double Fz_th;	// threshold for Fz detection
-
-    Vector3d m_remainPos;
-    double m_remainTime;
-
-    Vector3d m_remainPos_left;
-    double m_remainTime_left;
-    Vector3d m_remainPos_right;
-    double m_remainTime_right;
-
-    double ds_Time;  // double support time
-    double swingTime;
-
+    double t_wait;  // waiting time after contacting the wall
     double Tcutoff;
 
-    double N;  // clear time for leg extension
+//    double N;  // clear time for leg extension
 
-    void reflex(bool fall_trigger); // main function
+    void reflex(bool fall_trigger, VectorXd &leftHandFT, VectorXd &rightHandFT); // main function
 
     void updateswingArmTraj(Vector3d remainP_left,double remainTime_left,Vector3d remainP_right,double remainTime_right, Vector3d remainP, double remainTime);
 
@@ -57,7 +46,7 @@ public:
     void extensionReflex();	// leg extension reflex in case of late contact
 
 
-    void setArmContactPhase(string leftarm, string rightarm);
+    void setArmContactPhase(bool leftarm, bool rightarm);
 
     // below are testing functions
     double reflexRetractionOutput(double input, double a_max_retract);
@@ -78,9 +67,16 @@ public:
 
     // set reflex mode
     void setReflexMode(bool);
+    void setSamplingTime(double T);
 
 public:
     Vector3d m_angle;   // virtual arm angle, now use the same for left and right arm
+    bool isDebugMode;
+    Vector3d m_shoulder, m_elbow; //
+
+    // Update numerical pos, vel, acc
+    void updateVector(double dT, double xnew, Vector3d &m_vector);
+
 
 private:
 
@@ -119,8 +115,9 @@ public:
         bool isAerial;
         int max_count_aerial;
         int counterAerial;
-        vector<string> arm_phase;
+        vector<bool> arm_phase;
 
+        double Tn, zeta;    // response time of spring damper and the damping ratio
         double m0, m1, m2, n0, n1, n2, K, D;
         Matrix2d A, At;
         Vector2d B, Bt;
@@ -139,8 +136,9 @@ public:
         {
             bool enable;    // default init is false anyway
             bool done;
-        };
-        _flags flg_retract, flg_ext;
+            double time;
+        } ;
+        _flags flg_retract, flg_ext, flg_fall;
 
         // member variables for retraction
         double a_max_retract; // max acceleration
@@ -152,8 +150,8 @@ public:
         double p_max_ext; // max displacement
 
         void Initialization(double dT, bool);
-        void reflexConfig(double dT, double Tn, double zeta);
-        void reflexRetractionActivation(double dT, double Tn, double zeta);
+        void reflexConfig(double dT);
+        void reflexRetractionActivation(double dT);
         double unitResponseConstrained(double input, double a_max_retract, Vector3d &output);
         double reflexRetractionOutput(double input, double a_max_retract);
         double reflexRetractionClear(double input, double a_max_retract);
@@ -161,14 +159,16 @@ public:
         bool swingArmActivation(bool fall_trigger);
 
         // extension
-        void updateHandContact(string arm_phase);
-        bool stanceArmAerial(VectorXd & FT, double Fz_th);
+        void updateHandContact(bool arm_phase);
+        bool contactArmAerial(VectorXd & FT, double Fz_th);
         double getExtensionOutput(); // decide later what variables you want to get
         void set_A_retract(double mag);
         void set_T_retract(double time);
 
+        void reflexClearance(double input, Vector3d &output);
+        int setPushbacktime(double time, double T);
     };
-    virtualModel armLeft, armRight;
+    virtualModel shoulder, elbow;
 };
 
 
