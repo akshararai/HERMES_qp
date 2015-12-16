@@ -38,7 +38,7 @@ public:
 
 //    double N;  // clear time for leg extension
 
-    void reflex(bool fall_trigger, VectorXd &leftHandFT, VectorXd &rightHandFT); // main function
+    void reflex(bool fall_trigger, double realtime, VectorXd &leftHandFT, VectorXd &rightHandFT); // main function
 
     void updateswingArmTraj(Vector3d remainP_left,double remainTime_left,Vector3d remainP_right,double remainTime_right, Vector3d remainP, double remainTime);
 
@@ -55,7 +55,7 @@ public:
     void updateswingArmData(Vector3d remainP,double remainTime);
 
     // state machine
-    void stateMachine(bool fall_trigger);
+    void stateMachine(bool fall_trigger, double realtime);
 
     double getarmTrajMod();
 

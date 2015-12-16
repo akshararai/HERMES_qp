@@ -62,7 +62,7 @@ ArmReflex::~ArmReflex()
 
 
 
-void ArmReflex::reflex(bool fall_trigger, VectorXd &leftHandFT, VectorXd &rightHandFT)
+void ArmReflex::reflex(bool fall_trigger, double realtime, VectorXd &leftHandFT, VectorXd &rightHandFT)
 {
     // apply filter
     m_FTl=(Tcutoff*m_FTl+dT*leftHandFT)/(Tcutoff+dT);
@@ -81,7 +81,7 @@ void ArmReflex::reflex(bool fall_trigger, VectorXd &leftHandFT, VectorXd &rightH
 
 //    cout<<"hand_contact: "<<hand_contact<<endl;
 
-    stateMachine(fall_trigger);
+    stateMachine(fall_trigger, realtime);
 }
 
 
@@ -198,7 +198,7 @@ void ArmReflex::setArmContactPhase(bool leftarm, bool rightarm)
     }
 }
 
-void ArmReflex::stateMachine(bool fall_trigger)
+void ArmReflex::stateMachine(bool fall_trigger, double realtime)
 {
 	/*-------  early landing detection ------*/
     // determine whether or not it is going to fall, fall activation
@@ -209,6 +209,8 @@ void ArmReflex::stateMachine(bool fall_trigger)
 	{        
         shoulder.flg_retract.enable=true;
         elbow.flg_retract.enable=true;
+
+        shoulder.flg_retract.time=realtime;
 
         shoulder.Tn=1.0*shoulder.T_retract;   // response time Tn 0.5 is half of the remain time
         shoulder.zeta=1.0;    // damping ratio

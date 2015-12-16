@@ -211,9 +211,21 @@ int mytest::run()
             joint_state[L_WR].load,
             joint_state[L_WFE].load;
 
-//    cout<<leftArm.norm()<<"\t"<<rightArm.norm()<<endl;
+    // hack the code by using timing control
+    if ((real_time>Arm.shoulder.flg_retract.time+Arm.t_wait)&&Arm.shoulder.flg_retract.enable)
+    {
+        leftArm <<10.0, 2.0, 2.0, 2.0, 2.0, 2.0;
+        rightArm<<10.0, 2.0, 2.0, 2.0, 2.0, 2.0;
+    }
+    else
+    {
+        leftArm=VectorXd::Zero(6);
+        rightArm=VectorXd::Zero(6);
+    }
 
-    Arm.reflex(isFall, leftArm, rightArm);
+    //cout<<leftArm.norm()<<"\t"<<rightArm.norm()<<endl;
+
+    Arm.reflex(isFall, real_time, leftArm, rightArm);
     output = Arm.shoulder.m_retraction(0);
 //    cout << "fall? " << isFall << "\t";
 //    cout << "reflex "<< output << endl;
