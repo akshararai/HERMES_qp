@@ -107,22 +107,22 @@ init_zero_task(void)
   target[R_WFE].th = 0.0;
   target[R_WAA].th = 0.0;
 
-  target[L_HFE].th = 0.2;
+  target[L_HFE].th = 0.1;
   target[L_HAA].th = -0.15;
   target[L_HFR].th = 0.0;
-  target[L_KFE].th = 0.25;
-  target[L_AR].th = 0.0;
-  target[L_AFE].th = 0.35;
-  target[L_AAA].th = 0.05;
+  target[L_KFE].th = 0.35;
+  target[L_AR].th = 0.1;
+  target[L_AFE].th = 0.45;
+  target[L_AAA].th = 0.1;
 
 
-  target[R_HFE].th = 0.25;
+  target[R_HFE].th = 0.15;
   target[R_HAA].th = -0.1;
   target[R_HFR].th = 0.0;
-  target[R_KFE].th = 0.3;
-  target[R_AR].th = 0.1;
-  target[R_AFE].th = 0.25;
-  target[R_AAA].th = -0.0;
+  target[R_KFE].th = 0.4;
+  target[R_AR].th = 0.05;
+  target[R_AFE].th = 0.35;
+  target[R_AAA].th = 0.15;
 
   target[B_TR].th = -0.3;
   target[B_TAA].th = 0.0;
@@ -189,6 +189,7 @@ run_zero_task(void)
   for(i=1; i<=N_DOFS; i++)  {
     joint_des_state[i].th = target[i].th;
   }
+  joint_des_state[R_AAA].uff = 20.0;
   SL_InvDyn(joint_state,joint_des_state,endeff,&base_state,&base_orient);
   return TRUE;
 }

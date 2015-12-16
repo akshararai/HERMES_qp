@@ -398,118 +398,118 @@ myDrawGLElement(int num, double length, int flag)
 
     lab_root = getenv("LAB_ROOT");
 
-    sprintf(fname,"%s/Pelvis.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/Pelvis.obj",lab_root);
     pelvis         = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/B_TR.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/B_TR.obj",lab_root);
     b_tr           = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/B_TAA.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/B_TAA.obj",lab_root);
     b_taa          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/B_TFE.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/B_TFE.obj",lab_root);
     b_tfe          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_HFE.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_HFE.obj",lab_root);
     l_hfe          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_HAA.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_HAA.obj",lab_root);
     l_haa          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_HFR.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_HFR.obj",lab_root);
     l_hfr          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_KFE.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_KFE.obj",lab_root);
     l_kfe          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_AR.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_AR.obj",lab_root);
     l_ar          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_AFE.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_AFE.obj",lab_root);
     l_afe          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_AAA.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_AAA.obj",lab_root);
     l_aaa          = displayListFromObjFileFlag(fname,0.0256,FALSE);
 
-    sprintf(fname,"%s/L_HFE.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_HFE.obj",lab_root);
     r_hfe          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_HAA.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_HAA.obj",lab_root);
     r_haa          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_HFR.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_HFR.obj",lab_root);
     r_hfr          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_KFE.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_KFE.obj",lab_root);
     r_kfe          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_AR.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_AR.obj",lab_root);
     r_ar          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_AFE.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_AFE.obj",lab_root);
     r_afe          = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/R_AAA.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/R_AAA.obj",lab_root);
     r_aaa          = displayListFromObjFileFlag(fname,0.0256,FALSE);
 
-    sprintf(fname,"%s/B_HN.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/B_HN.obj",lab_root);
     b_hn           = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/B_HT.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/B_HT.obj",lab_root);
     b_ht           = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/B_HR.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/B_HR.obj",lab_root);
     b_hr           = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/humanoidHeadLeftEye.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/humanoidHeadLeftEye.obj",lab_root);
     left_eye         = displayListFromObjFile(fname,0.0256);
 
-    sprintf(fname,"%s/humanoidHeadRightEye.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/humanoidHeadRightEye.obj",lab_root);
     right_eye         = displayListFromObjFile(fname,0.0256);
 
-    sprintf(fname,"%s/humanoidHead.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/humanoidHead.obj",lab_root);
     head         = displayListFromObjFile(fname,0.0256);
 
-    sprintf(fname,"%s/R_SFE.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/R_SFE.obj",lab_root);
     r_sfe        = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/R_SAA.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/R_SAA.obj",lab_root);
     r_saa        = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/R_HR.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/R_HR.obj",lab_root);
     r_hr         = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/R_EB.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/R_EB.obj",lab_root);
     r_eb         = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/R_WR.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/R_WR.obj",lab_root);
     r_wr         = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/R_WFE.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/R_WFE.obj",lab_root);
     r_wfe        = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/R_WAA.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/R_WAA.obj",lab_root);
     l_waa        = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_SFE.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_SFE.obj",lab_root);
     l_sfe        = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_SAA.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_SAA.obj",lab_root);
     l_saa        = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_HR.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_HR.obj",lab_root);
     l_hr         = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_EB.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_EB.obj",lab_root);
     l_eb         = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_WR.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_WR.obj",lab_root);
     l_wr         = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_WFE.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_WFE.obj",lab_root);
     l_wfe        = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
-    sprintf(fname,"%s/L_WAA.obj",OBJECT_MODEL_PATH);
+    sprintf(fname,"%s/hermesCore/3D/L_WAA.obj",lab_root);
     r_waa        = displayListFromObjFileFlag(fname,0.0256,TRUE);
 
   }

@@ -10,8 +10,11 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>xenomai_ros</build_depend>
   <build_depend>hermes_core</build_depend>
+  <build_depend>cga_imu</build_depend>
+  <build_depend>pf_imu</build_depend>
   <run_depend>hermes_core</run_depend>
-  
+  <run_depend>cga_imu</run_depend>
+  <run_depend>pf_imu</run_depend>
   <export>
   </export>
 </package>

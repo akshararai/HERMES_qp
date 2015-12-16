@@ -18,7 +18,7 @@
 namespace wholebody_demo
 {
 mytest::mytest() :
-    sampleT(1.0/double(task_servo_rate)),
+    sampleT(0.004),
     config_file_("mytestConfig.cf"),
     task_start_time(0.0),
     real_time(0.0),
@@ -131,7 +131,7 @@ mytest::~mytest()
 
 int mytest::run()
 {
-    double output, sim_time, roundup;
+    double sim_time, roundup;
 
     sim_time = task_servo_time - task_start_time;
 //    cout << "rt time " << real_time << "\tsim_time "<< sim_time << "\t"; // << endl;
@@ -259,8 +259,10 @@ int mytest::run()
 
 
     // feedforward ankle torque for partial gravity compensation
-    joint_des_state[L_AFE].uff = cog_kp*(0.10-rcom(1))-cog_kd*drcom(1);
-    joint_des_state[R_AFE].uff = cog_kp*(0.10-rcom(1))-cog_kd*drcom(1);
+    // joint_des_state[L_AFE].uff = cog_kp*(rcom_init(1)-rcom(1))-cog_kd*drcom(1);
+    // joint_des_state[R_AFE].uff = cog_kp*(rcom_init(1)-rcom(1))-cog_kd*drcom(1);
+    joint_des_state[L_KFE].uff =  cog_kd*drcom(1); // flexion torque for knee is positive
+    joint_des_state[R_KFE].uff =  cog_kd*drcom(1); // No position, only damping
 
     // shoudler pitch
     joint_des_state[L_SFE].th = joint_init_state[L_SFE-1] + reflex_mag_sp*Arm.shoulder.m_retraction(0);

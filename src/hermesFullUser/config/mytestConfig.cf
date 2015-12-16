@@ -3,8 +3,8 @@ push_force 150.0
 push_duration 0.4
 
 
-cog_kp 10.0
-cog_kd 200.0
+cog_kp 0.0 //10.0
+cog_kd 0.5 //200.0
 
 /* Units in radius and second */
 reflex_mag_sp 0.6
@@ -13,7 +13,7 @@ reflex_mag_e 1.2
 reflex_time 0.3
 
 /* threshold for triggering capture point */
-stability_margin 0.07
+stability_margin 0.12
 
-torso_pitch_kp 5.0
-torso_pitch_kd 2.5
+torso_pitch_kp 0.0
+torso_pitch_kd 0.0

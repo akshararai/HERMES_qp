@@ -22,7 +22,7 @@ set(APOLLO_HOST pechstein)
 set(HERMES_HOST hermes)
 
 # set global compile type
-#set(CMAKE_BUILD_TYPE RelWithDebInfo) # Optimization with debugging info
+set(CMAKE_BUILD_TYPE RelWithDebInfo) # Optimization with debugging info
 #set(CMAKE_BUILD_TYPE Release)       # Optimization 
 #set(CMAKE_BUILD_TYPE Debug)         # Debug
 

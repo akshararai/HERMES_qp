@@ -394,7 +394,7 @@ enum MiscSensors {
 
 /* divisor to obtain task servo rate (task servo can run slower than
    base rate, but only in integer fractions */
-#define  TASK_SERVO_RATIO   R1TO1
+#define  TASK_SERVO_RATIO   R1TO4
 
 /* settings for D/A debugging information -- see SL_oscilloscope.c */
 #define   D2A_CM      1

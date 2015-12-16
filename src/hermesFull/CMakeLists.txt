@@ -11,6 +11,7 @@ find_package(X11 REQUIRED)
 sl_find_package_GLUT()
 find_package(OpenGL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
+find_package(Eigen REQUIRED)
 
 # find optional packages
 find_package(xenomai_ros QUIET)
@@ -29,11 +30,9 @@ catkin_package(
 )
 sl_package()
 
-set(object_model_path '"${hermes_core_SOURCE_PREFIX}/3D"')
-set(CMAKE_C_FLAGS "-DOBJECT_MODEL_PATH=${object_model_path} ${CMAKE_C_FLAGS}")
-
 if (Xenomai_FOUND)
   find_package(hermes_communication_tools REQUIRED)
+  find_package(pf_imu REQUIRED)
   add_xenomai_flags()
 endif()
 
@@ -43,6 +42,12 @@ include_directories(
   ${X11_INCLUDE_DIR}
   ${hermes_communication_tools_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  ${Xenomai_INCLUDE_DIR}
+  /home/arai/HERMES/src/cga_imu/include
+  /home/arai/HERMES/src/cga_imu/src
+  /home/arai/HERMES/src/pf_imu/include
+  ${pf_imu_INCLUDE_DIRS}
+  ${EIGEN_INCLUDE_DIRS}
 )
 
 if (Xenomai_FOUND)
@@ -72,7 +77,6 @@ add_library(hermes_full
   src/SL_kinematics.c
   ${hermes_core_SOURCE_PREFIX}/src/SL_user_commands.c
   src/SL_user_common.c
-  ${hermes_core_SOURCE_PREFIX}/src/raw_data_access.cpp
 )
 target_link_libraries(hermes_full
   SLcommon)
@@ -93,10 +97,16 @@ target_link_libraries(hermes_full_openGL
 add_library(hermes_full_task
   ${hermes_core_SOURCE_PREFIX}/src/SL_user_task.cpp
   ${hermes_core_SOURCE_PREFIX}/src/base_state_estimation.cpp
+  ${hermes_core_SOURCE_PREFIX}/src/state_est_lin.cpp
+  ${hermes_core_SOURCE_PREFIX}/src/COGDifferentiator.cpp
+  ${hermes_core_SOURCE_PREFIX}/src/FallDetector.cpp
+  ${hermes_core_SOURCE_PREFIX}/src/raw_data_access.cpp
 )
 target_link_libraries(hermes_full_task
   hermes_full
   SLtask
+  cga_imu
+  pf_imu
 )
 
 # simulation servo modules
@@ -136,7 +146,7 @@ set_target_properties(xpest_hermes_full
 # motor servo modules for simulation
 add_executable(xmotor_hermes_full
   ${hermes_core_SOURCE_PREFIX}/src/SL_user_motor.c
-  ${hermes_core_SOURCE_PREFIX}/src/SL_user_sensor_proc_unix.cpp
+  ${hermes_core_SOURCE_PREFIX}/src/SL_user_sensor_proc_unix.c
 )
 target_link_libraries(xmotor_hermes_full
   hermes_full
@@ -169,8 +179,7 @@ if (Xenomai_FOUND)
   # motor servo modules for the actual robot
   add_executable(xrmotor_hermes_full
     src/SL_user_common.c
-    ${hermes_core_SOURCE_PREFIX}/src/valve_controller.cpp
-    ${hermes_core_SOURCE_PREFIX}/src/valve_identifier.cpp
+    ${hermes_core_SOURCE_PREFIX}/src/valve_controller.cpp 
     ${hermes_core_SOURCE_PREFIX}/src/SL_user_sensor_proc_xeno.cpp 
     ${hermes_core_SOURCE_PREFIX}/src/gdc_sl_interface.cpp 
     ${hermes_core_SOURCE_PREFIX}/src/SL_user_motor_xeno.cpp
@@ -180,6 +189,8 @@ if (Xenomai_FOUND)
     SLmotor
     ${Boost_LIBRARIES}
     hermes_communication_tools
+    cga_imu
+    pf_imu
   )
   set_target_properties(xrmotor_hermes_full
                         PROPERTIES OUTPUT_NAME xrmotor)
