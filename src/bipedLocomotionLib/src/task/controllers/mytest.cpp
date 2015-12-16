@@ -223,7 +223,7 @@ int mytest::run()
         rightArm=VectorXd::Zero(6);
     }
 
-    cout<<leftArm.norm()<<"\t"<<rightArm.norm()<<endl;
+//    cout<<leftArm.norm()<<"\t"<<rightArm.norm()<<endl;
 
     Arm.reflex(isFall, real_time, leftArm, rightArm);
     output = Arm.shoulder.m_retraction(0);
