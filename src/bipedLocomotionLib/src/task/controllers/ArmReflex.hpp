@@ -38,7 +38,7 @@ public:
 
 //    double N;  // clear time for leg extension
 
-    void reflex(bool fall_trigger, VectorXd &leftHandFT, VectorXd &rightHandFT); // main function
+    void reflex(bool fall_trigger, double realtime, VectorXd &leftHandFT, VectorXd &rightHandFT); // main function
 
     void updateswingArmTraj(Vector3d remainP_left,double remainTime_left,Vector3d remainP_right,double remainTime_right, Vector3d remainP, double remainTime);
 
@@ -55,7 +55,7 @@ public:
     void updateswingArmData(Vector3d remainP,double remainTime);
 
     // state machine
-    void stateMachine(bool fall_trigger);
+    void stateMachine(bool fall_trigger, double realtime);
 
     double getarmTrajMod();
 
@@ -117,6 +117,10 @@ public:
         int counterAerial;
         vector<bool> arm_phase;
 
+        bool isPushBack;
+        int max_count_push;
+        int counterPush;
+
         double Tn, zeta;    // response time of spring damper and the damping ratio
         double m0, m1, m2, n0, n1, n2, K, D;
         Matrix2d A, At;
@@ -167,6 +171,7 @@ public:
 
         void reflexClearance(double input, Vector3d &output);
         int setPushbacktime(double time, double T);
+        bool contactArmPushBack(double realtime, double trigger_time);
     };
     virtualModel shoulder, elbow;
 };
