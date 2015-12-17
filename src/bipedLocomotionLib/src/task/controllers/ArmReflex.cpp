@@ -323,7 +323,7 @@ void ArmReflex::stateMachine(bool fall_trigger, double realtime)
         double mag_shoulder = 0.5*mag_elbow;
         shoulder.reflexRetractionOutput(shoulder.A_retract+mag_shoulder, shoulder.a_max_retract);
         elbow.reflexRetractionOutput(elbow.A_retract-mag_elbow, elbow.a_max_retract);
-        if (1)
+        if (0)
         {
             cout<<"push back!"<<endl; //
         }
