@@ -31,6 +31,8 @@ public:
 
     bool reflexMode; // perhaps I can use bool
 
+    // member variables for retraction
+
     // member variables for detection
     double Fz_th;	// threshold for Fz detection
     double t_wait;  // waiting time after contacting the wall
@@ -112,9 +114,9 @@ public:
         int max_count_activation;
         int counterActivation;
 
-        bool isAerial;
-        int max_count_aerial;
-        int counterAerial;
+        bool isContact;
+        int max_count_contact;
+        int counterContact;
         vector<bool> arm_phase;
 
         bool isPushBack;
@@ -164,7 +166,7 @@ public:
 
         // extension
         void updateHandContact(bool arm_phase);
-        bool contactArmAerial(VectorXd & FT, double Fz_th);
+        bool armContact(VectorXd & FT, double Fz_th);
         double getExtensionOutput(); // decide later what variables you want to get
         void set_A_retract(double mag);
         void set_T_retract(double time);
