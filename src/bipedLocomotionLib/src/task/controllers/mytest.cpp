@@ -292,7 +292,7 @@ int mytest::run()
         joint_des_state[L_EB].th = joint_init_state[L_EB-1]+reflex_mag_e*Arm.elbow.m_retraction(0);
 
         // right shoudler roll
-        joint_des_state[R_SAA].th = joint_init_state[R_SAA-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
+        joint_des_state[B_TR].th = joint_init_state[B_TR-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
     }
 
     // right shoudler pitch

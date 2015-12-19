@@ -10,7 +10,7 @@
 
 COG_Differentiator::COG_Differentiator() {
 	for (int i = 0; i < 3; i++){
-		cog_dot_filter[i].cutoff = 40;
+		cog_dot_filter[i].cutoff = 100;
 		for (int j = 0; j< 3; j++){
 			cog_dot_filter[i].filt[j] = 0;
 			cog_dot_filter[i].raw[j] = 0;
@@ -26,7 +26,7 @@ COG_Differentiator::~COG_Differentiator() {
 void COG_Differentiator::apply_cog_diff(SL_Cstate* cog){
 
 	for(int i = 0; i < 3; i++){
-		cog->xd[i+1] = filt((cog->x[i+1] - prev_cog.x[i + 1])*SERVO_BASE_RATE, &cog_dot_filter[i]);
+		cog->xd[i+1] = filt((cog->x[i+1] - prev_cog.x[i + 1])*0.004, &cog_dot_filter[i]);
 	}
 
 	prev_cog = *cog;

@@ -92,7 +92,7 @@ init_zero_task(void)
 
   printf("Reached %d \n", N_DOFS);
   target[L_SFE].th  = -0.35;
-  target[L_SAA].th = -0.6;
+  target[L_SAA].th = -0.2;
   target[L_HR].th = 0.0;
   target[L_EB].th = 0.2;
   target[L_WR].th = 0.0;
@@ -100,7 +100,7 @@ init_zero_task(void)
   target[L_WAA].th = 0.0;
 
   target[R_SFE].th  = -0.05;
-  target[R_SAA].th = -0.6;
+  target[R_SAA].th = -0.2;
   target[R_HR].th = 0.0;
   target[R_EB].th = 0.1;
   target[R_WR].th = 0.0;
@@ -190,6 +190,8 @@ run_zero_task(void)
     joint_des_state[i].th = target[i].th;
   }
   joint_des_state[R_AAA].uff = 20.0;
+  joint_des_state[R_SAA].uff = 10.0;
+
   SL_InvDyn(joint_state,joint_des_state,endeff,&base_state,&base_orient);
   return TRUE;
 }

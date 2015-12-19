@@ -17,7 +17,7 @@ ArmReflex::ArmReflex():
 dT(0.004),	// defualt value, later in config it will be assigned again
 Tcutoff(50.0),  // hard coded
 Fz_th(10.0),
-t_wait(2.0),
+t_wait(1.5),
 reflexMode(false),
 isControllerOn(false),
 isDebugMode(false)
@@ -266,7 +266,7 @@ void ArmReflex::stateMachine(bool fall_trigger, double realtime)
     if (shoulder.flg_retract.enable && !shoulder.flg_retract.done && shoulder.isContact)
     {
         shoulder.flg_retract.done=true;
-        shoulder.Tn=0.3;   // response time Tn 0.5 is half of the remain time
+        shoulder.Tn=0.2;   // response time Tn 0.5 is half of the remain time
         shoulder.zeta=1.0;    // damping ratio
         shoulder.reflexConfig(dT);
     }
@@ -274,7 +274,7 @@ void ArmReflex::stateMachine(bool fall_trigger, double realtime)
     {
         // potential place for bug seen in exp
         elbow.flg_retract.done=true;
-        elbow.Tn=0.3;
+        elbow.Tn=0.2;
         elbow.zeta=1.0;    // damping ratio
         elbow.reflexConfig(dT);
     }
@@ -363,7 +363,7 @@ ArmReflex::virtualModel::virtualModel():
     A_ext(0.0),
     T_ext(10.0),
     Tn(T_retract),
-    a_max_retract(20.0),
+    a_max_retract(50.0),
     v_max_retract(0.5),
     a_max_ext(3.0),
     v_max_ext(0.5),
