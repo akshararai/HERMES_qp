@@ -107,7 +107,7 @@ init_zero_task(void)
   target[R_WFE].th = 0.0;
   target[R_WAA].th = 0.0;
 
-  target[L_HFE].th = 0.1;
+  target[L_HFE].th = 0.125;
   target[L_HAA].th = -0.15;
   target[L_HFR].th = 0.0;
   target[L_KFE].th = 0.35;
@@ -116,7 +116,7 @@ init_zero_task(void)
   target[L_AAA].th = 0.1;
 
 
-  target[R_HFE].th = 0.15;
+  target[R_HFE].th = 0.175;
   target[R_HAA].th = -0.1;
   target[R_HFR].th = 0.0;
   target[R_KFE].th = 0.4;

@@ -261,14 +261,14 @@ void ArmReflex::stateMachine(bool fall_trigger, double realtime)
     if (shoulder.flg_retract.enable && !shoulder.flg_retract.done && shoulder.isAerial)
     {
         shoulder.flg_retract.done=true;
-        shoulder.Tn=0.8;   // response time Tn 0.5 is half of the remain time
+        shoulder.Tn=0.3;   // response time Tn 0.5 is half of the remain time
         shoulder.zeta=1.0;    // damping ratio
         shoulder.reflexConfig(dT);
     }
     if (elbow.flg_retract.enable && !elbow.flg_retract.done && elbow.isAerial)
     {
         elbow.flg_retract.done=true;
-        elbow.Tn=0.8;
+        elbow.Tn=0.3;
         elbow.zeta=1.0;    // damping ratio
         elbow.reflexConfig(dT);
     }
@@ -316,7 +316,7 @@ void ArmReflex::stateMachine(bool fall_trigger, double realtime)
     // new state: 11, activate pushing back
     else if (shoulder.flg_retract.enable&&shoulder.flg_retract.done)
 	{
-        double mag_elbow = 0.8*elbow.A_retract;
+        double mag_elbow = 1.0*elbow.A_retract;
         double mag_shoulder = 0.5*mag_elbow;
         shoulder.reflexRetractionOutput(shoulder.A_retract+mag_shoulder, shoulder.a_max_retract);
         elbow.reflexRetractionOutput(elbow.A_retract-mag_elbow, elbow.a_max_retract);
