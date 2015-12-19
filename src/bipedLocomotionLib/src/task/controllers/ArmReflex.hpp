@@ -112,10 +112,14 @@ public:
         int max_count_activation;
         int counterActivation;
 
-        bool isAerial;
-        int max_count_aerial;
-        int counterAerial;
+        bool isContact;
+        int max_count_contact;
+        int counterContact;
         vector<bool> arm_phase;
+
+        bool isPushBack;
+        int max_count_push;
+        int counterPush;
 
         double Tn, zeta;    // response time of spring damper and the damping ratio
         double m0, m1, m2, n0, n1, n2, K, D;
@@ -160,13 +164,14 @@ public:
 
         // extension
         void updateHandContact(bool arm_phase);
-        bool contactArmAerial(VectorXd & FT, double Fz_th);
+        bool armContact(VectorXd & FT, double Fz_th);
         double getExtensionOutput(); // decide later what variables you want to get
         void set_A_retract(double mag);
         void set_T_retract(double time);
 
         void reflexClearance(double input, Vector3d &output);
         int setPushbacktime(double time, double T);
+        bool contactArmPushBack(double realtime, double trigger_time);
     };
     virtualModel shoulder, elbow;
 };

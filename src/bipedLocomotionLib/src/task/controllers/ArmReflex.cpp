@@ -26,8 +26,8 @@ isDebugMode(false)
     shoulder.Initialization(dT, true);
     elbow.Initialization(dT, false);
 
-    shoulder.max_count_aerial=shoulder.setPushbacktime(t_wait, dT);
-    elbow.max_count_aerial=shoulder.setPushbacktime(t_wait, dT);
+    shoulder.max_count_contact=shoulder.setPushbacktime(t_wait, dT);
+    elbow.max_count_contact=elbow.setPushbacktime(t_wait, dT);
 
     // you must initialize m_FTl here, otherwise it crashes
     m_FTl = VectorXd::Zero(6);
@@ -36,7 +36,7 @@ isDebugMode(false)
     hand_contact="00";
 
 //    elbow.a_max_retract=6.0;
-    elbow.A_retract=1.5;
+    elbow.A_retract=2.0*shoulder.A_retract;
 
 
     if (isDebugMode)
@@ -74,10 +74,10 @@ void ArmReflex::reflex(bool fall_trigger, double realtime, VectorXd &leftHandFT,
 
 //    cout<<"left:\t"<<leftHandFT<<endl;
 
-    shoulder.contactArmAerial(leftHandFT, Fz_th);   // temperarily, I use shoulder for one arm, elbow for another
-    elbow.contactArmAerial(rightHandFT, Fz_th);
+    shoulder.armContact(leftHandFT, Fz_th);   // temperarily, I use shoulder for one arm, elbow for another
+    elbow.armContact(rightHandFT, Fz_th);
 
-    setArmContactPhase(shoulder.isAerial, elbow.isAerial);
+    setArmContactPhase(shoulder.isContact, elbow.isContact);
 
 //    cout<<"hand_contact: "<<hand_contact<<endl;
 
@@ -237,6 +237,11 @@ void ArmReflex::stateMachine(bool fall_trigger, double realtime)
         shoulder.Tn=0.5;   // hard coded clearance time
         shoulder.zeta=1.0;    // damping ratio
         shoulder.reflexConfig(dT);
+
+        // resolve potential place for bug seen in exp
+        // this switch happens only once
+        elbow.Tn=0.5;   // hard coded clearance time
+        elbow.zeta=1.0;    // damping ratio
         elbow.reflexConfig(dT);
         if (isDebugMode)
         {
@@ -258,15 +263,16 @@ void ArmReflex::stateMachine(bool fall_trigger, double realtime)
 
     // add hand contact state, if contact force > threshold, set done 1
     // so below you configure only once the flags
-    if (shoulder.flg_retract.enable && !shoulder.flg_retract.done && shoulder.isAerial)
+    if (shoulder.flg_retract.enable && !shoulder.flg_retract.done && shoulder.isContact)
     {
         shoulder.flg_retract.done=true;
         shoulder.Tn=0.3;   // response time Tn 0.5 is half of the remain time
         shoulder.zeta=1.0;    // damping ratio
         shoulder.reflexConfig(dT);
     }
-    if (elbow.flg_retract.enable && !elbow.flg_retract.done && elbow.isAerial)
+    if (elbow.flg_retract.enable && !elbow.flg_retract.done && elbow.isContact)
     {
+        // potential place for bug seen in exp
         elbow.flg_retract.done=true;
         elbow.Tn=0.3;
         elbow.zeta=1.0;    // damping ratio
@@ -364,11 +370,11 @@ ArmReflex::virtualModel::virtualModel():
     p_max_ext(0.02),
     zeta(1.0),
     isActivation(false),
-    isAerial(false),
+    isContact(false),
     max_count_activation(5),
     counterActivation(0),
-    max_count_aerial(5),
-    counterAerial(0),
+    max_count_contact(5),
+    counterContact(0),
     arm_phase(2,0)
 {
     m_retraction<<0,0,0;
@@ -484,27 +490,52 @@ bool ArmReflex::virtualModel::swingArmActivation(bool fall_trigger)
 }
 
 
-bool ArmReflex::virtualModel::contactArmAerial(VectorXd & FT, double Fz_th)
+bool ArmReflex::virtualModel::armContact(VectorXd & FT, double Fz_th)
 {
-    if ( FT.norm()>=Fz_th && !isAerial )
+    if ( FT.norm()>=Fz_th && !isContact )
     {
-        counterAerial++;
+        counterContact++;
     }
-    else if (counterAerial>=0 && FT.norm()<Fz_th)
+    else if (counterContact>=0 && FT.norm()<Fz_th)
     {
-        counterAerial--;
-    }
-
-    if(counterAerial>max_count_aerial)
-    {
-        isAerial=true;
-    }
-    else if (counterAerial<0)
-    {
-        isAerial=false;
+        counterContact--;
     }
 
-    return isAerial;
+    if(counterContact>max_count_contact)
+    {
+        isContact=true;
+    }
+    else if (counterContact<0)
+    {
+        isContact=false;
+    }
+
+    return isContact;
+}
+
+
+
+bool ArmReflex::virtualModel::contactArmPushBack(double realtime, double trigger_time)
+{
+    if ( realtime>trigger_time && !isPushBack )
+    {
+        counterPush++;
+    }
+    else if (counterPush>=0 && realtime>trigger_time)
+    {
+        counterPush--;
+    }
+
+    if(counterPush>max_count_push)
+    {
+        isPushBack=true;
+    }
+    else if (counterPush<0)
+    {
+        isPushBack=false;
+    }
+
+    return isPushBack;
 }
 
 

@@ -127,6 +127,7 @@ namespace wholebody_demo
         double torso_pitch_kp; //=500.0;
         double torso_pitch_kd;
 
+        double flag_one_hand;
 
         void getEuler();
         void attitudeControl();
