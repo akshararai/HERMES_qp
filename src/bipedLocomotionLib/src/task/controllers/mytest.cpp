@@ -83,6 +83,10 @@ mytest::mytest() :
     if(!read_parameter_pool_double(config_file_.c_str(),"torso_pitch_kp",&torso_pitch_kp))
         assert(false && "reading parameter torso_pitch_kp failed");
 
+    if(!read_parameter_pool_double(config_file_.c_str(),"flag_one_hand",&flag_one_hand))
+        assert(false && "reading parameter flag_one_hand failed");
+
+
     joint_init_state.resize(N_DOFS);
 
 
@@ -274,16 +278,24 @@ int mytest::run()
     joint_des_state[L_AFE].uff = cog_kp*(0.10-rcom(1))-cog_kd*drcom(1);
     joint_des_state[R_AFE].uff = cog_kp*(0.10-rcom(1))-cog_kd*drcom(1);
 
-    // shoudler pitch
-    joint_des_state[L_SFE].th = joint_init_state[L_SFE-1] + reflex_mag_sp*Arm.shoulder.m_retraction(0);
+    // left shoudler pitch
+    if (!(bool)flag_one_hand)
+    {
+        joint_des_state[L_SFE].th = joint_init_state[L_SFE-1] + reflex_mag_sp*Arm.shoulder.m_retraction(0);
+
+        // left shoudler roll
+        joint_des_state[L_SAA].th = joint_init_state[L_SAA-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
+
+        // left elbow
+        joint_des_state[L_EB].th = joint_init_state[L_EB-1]+reflex_mag_e*Arm.elbow.m_retraction(0);
+
+        // right shoudler roll
+        joint_des_state[R_SAA].th = joint_init_state[R_SAA-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
+    }
+
+    // right shoudler pitch
     joint_des_state[R_SFE].th = joint_init_state[R_SFE-1] + reflex_mag_sp* Arm.shoulder.m_retraction(0);
-
-    // shoudler roll
-    joint_des_state[L_SAA].th = joint_init_state[L_SAA-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
-    joint_des_state[R_SAA].th = joint_init_state[R_SAA-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
-
-    // elbow
-    joint_des_state[L_EB].th = joint_init_state[L_EB-1]+reflex_mag_e*Arm.elbow.m_retraction(0);
+    // right elbow
     joint_des_state[R_EB].th = joint_init_state[R_EB-1]+reflex_mag_e*Arm.elbow.m_retraction(0);
 
 

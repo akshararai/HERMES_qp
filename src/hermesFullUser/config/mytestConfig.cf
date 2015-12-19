@@ -17,3 +17,6 @@ stability_margin 0.07
 
 torso_pitch_kp 5.0
 torso_pitch_kd 2.5
+
+
+flag_one_hand 1
