@@ -116,6 +116,9 @@ namespace wholebody_demo
       double reflex_mag_e;
       double reflex_time;
 
+      double t_predict;
+
+      
         double m_yaw;
         double m_roll;
         double m_pitch;

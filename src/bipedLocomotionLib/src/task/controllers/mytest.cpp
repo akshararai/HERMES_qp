@@ -76,6 +76,8 @@ mytest::mytest() :
         assert(false && "reading parameter reflex_mag_e failed");
     if(!read_parameter_pool_double(config_file_.c_str(),"reflex_time",&reflex_time))
         assert(false && "reading parameter reflex_time failed");
+    if(!read_parameter_pool_double(config_file_.c_str(),"t_predict",&t_predict))
+        assert(false && "reading parameter predict time failed");
 
     if(!read_parameter_pool_double(config_file_.c_str(),"stability_margin",&stability_margin))
         assert(false && "reading parameter stability_margin failed");    
@@ -176,7 +178,18 @@ int mytest::run()
 
     rcom = kinematics_.cog();
     drcom = momentum_helper_.getdCog();
-    CapturePoint = rcom(1)+sqrt(1.0/9.81)*drcom(1) - rcom_init(1);  // sqrt(1.0/9.81)=0.319
+    double dycom = -drcom(1);
+    double ycom = rcom(1) - rcom_init(1);
+
+    double ycom_predict = ycom + dycom*t_predict;
+
+    double ddycom = base_state.xdd[_Y_];
+
+    double dycom_predict = dycom + ddycom * t_predict ;
+
+    CapturePoint = ycom_predict + sqrt(0.9/9.81)*dycom_predict;
+
+    //CapturePoint = rcom(1)+sqrt(1.0/9.81)*drcom(1) - rcom_init(1);  // sqrt(1.0/9.81)=0.319
 //    cout << "dx "<< drcom(1) <<"\tTc*dx "<< sqrt(1.0/9.81)*drcom(1) << endl;
 //    cout << "COM: " << rcom(1) <<"\t CP: "<< CapturePoint << endl;
 //    cout << "CP: "<< CapturePoint << endl;
