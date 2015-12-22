@@ -197,7 +197,7 @@ int mytest::run()
 
 	double ycom = rcom(0) - rcom_init(0);
 
-	double ycom_predict = ycom + drcom(1)*t_predict;
+    double ycom_predict = ycom + drcom(0)*t_predict;
 
     double ddycom = base_state.xdd[_X_];
     double dycom_predict = drcom(0) + ddycom * t_predict ;
