@@ -1,22 +1,29 @@
 /* some simulation parameters */
-push_force 150.0
-push_duration 0.4
+push_force 90.0
+push_duration 0.8
 
 
-cog_kp 10.0
+cog_kp 10000.0
 cog_kd 200.0
 
 /* Units in radius and second */
-reflex_mag_sp 0.6
-reflex_mag_sr 0.2
-reflex_mag_e 1.2
+reflex_mag_sp -0.35
+reflex_mag_sr -0.8
+reflex_mag_sy 0.79
+reflex_mag_e 0.7
 reflex_time 0.3
 
 /* threshold for triggering capture point */
 stability_margin 0.07
+
+stability_margin_lateral 0.09
 
 torso_pitch_kp 5.0
 torso_pitch_kd 2.5
 
 
 flag_one_hand 1
+
+flag_sagittal 0
+
+t_predict 0.1

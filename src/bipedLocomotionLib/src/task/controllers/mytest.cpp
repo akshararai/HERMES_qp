@@ -22,13 +22,14 @@ mytest::mytest() :
     config_file_("mytestConfig.cf"),
     task_start_time(0.0),
     real_time(0.0),
-    push_time(5.0), // let push time start later, let robot be steady first
+    push_time(2.0), // let push time start later, let robot be steady first
     Num_loop(0),
     stability_margin(0.10),
     cog_kp(500.0),
     cog_kd(50.0),
     torso_des(0.0),
     torso_pitch_kp(0.0),
+    t_predict(0.1), // predict 0.1 s ahead
     hinvdyn_solver_(kinematics_, momentum_helper_, contact_helper_, endeff_kinematics_)
 {
     // stop data collection to avoid crashes
@@ -72,13 +73,18 @@ mytest::mytest() :
         assert(false && "reading parameter reflex_mag_sp failed");
     if(!read_parameter_pool_double(config_file_.c_str(),"reflex_mag_sr",&reflex_mag_sr))
         assert(false && "reading parameter reflex_mag_sr failed");
+    if(!read_parameter_pool_double(config_file_.c_str(),"reflex_mag_sy",&reflex_mag_sy))
+        assert(false && "reading parameter reflex_mag_sy failed");
     if(!read_parameter_pool_double(config_file_.c_str(),"reflex_mag_e",&reflex_mag_e))
         assert(false && "reading parameter reflex_mag_e failed");
     if(!read_parameter_pool_double(config_file_.c_str(),"reflex_time",&reflex_time))
         assert(false && "reading parameter reflex_time failed");
 
     if(!read_parameter_pool_double(config_file_.c_str(),"stability_margin",&stability_margin))
-        assert(false && "reading parameter stability_margin failed");    
+        assert(false && "reading parameter stability_margin failed");
+
+    if(!read_parameter_pool_double(config_file_.c_str(),"stability_margin_lateral",&stability_margin_lateral))
+        assert(false && "reading parameter stability_margin_lateral failed");
 
     if(!read_parameter_pool_double(config_file_.c_str(),"torso_pitch_kp",&torso_pitch_kp))
         assert(false && "reading parameter torso_pitch_kp failed");
@@ -86,6 +92,11 @@ mytest::mytest() :
     if(!read_parameter_pool_double(config_file_.c_str(),"flag_one_hand",&flag_one_hand))
         assert(false && "reading parameter flag_one_hand failed");
 
+    if(!read_parameter_pool_double(config_file_.c_str(),"flag_sagittal",&flag_sagittal))
+        assert(false && "reading parameter flag_sagittal failed");
+
+    if(!read_parameter_pool_double(config_file_.c_str(),"t_predict",&t_predict))
+        assert(false && "reading parameter t_predict failed");
 
     joint_init_state.resize(N_DOFS);
 
@@ -122,7 +133,8 @@ mytest::mytest() :
     addVarToCollect((char *)&(drcom[0]), "cog_dx","m/s",DOUBLE,TRUE);
     addVarToCollect((char *)&(drcom[1]), "cog_dy","m/s",DOUBLE,TRUE);
     addVarToCollect((char *)&(drcom[2]), "cog_dz","m/s",DOUBLE,TRUE);
-    addVarToCollect((char *)&(CapturePoint), "Capture_point","m",DOUBLE,TRUE);
+    addVarToCollect((char *)&(X_CapturePoint), "X_Capture_point","m",DOUBLE,TRUE);
+    addVarToCollect((char *)&(Y_CapturePoint), "Y_Capture_point","m",DOUBLE,TRUE);
     addVarToCollect((char *)&(output), "output","xx",DOUBLE,TRUE);
 
 
@@ -161,8 +173,8 @@ int mytest::run()
         if( real_time >= push_time &&real_time <= push_time + push_duration)
         {
 //            cout << "push : " << push_force << endl;
-            uext_sim[L_HAA].f[_Y_] = .5*push_force;
-            uext_sim[R_HAA].f[_Y_] = .5*push_force;
+            uext_sim[L_HAA].f[_X_] = .5*push_force;
+            uext_sim[R_HAA].f[_X_] = .5*push_force;
             sendUextSim();
         }
     }
@@ -180,14 +192,27 @@ int mytest::run()
 
     rcom = kinematics_.cog();
     drcom = momentum_helper_.getdCog();
-    CapturePoint = rcom(1)+sqrt(1.0/9.81)*drcom(1) - rcom_init(1);  // sqrt(1.0/9.81)=0.319
+    double xcom = rcom(1) - rcom_init(1);
+    X_CapturePoint = xcom + sqrt(1.0/9.81)*drcom(1) ;  // sqrt(1.0/9.81)=0.319
+
+	double ycom = rcom(0) - rcom_init(0);
+
+	double ycom_predict = ycom + drcom(1)*t_predict;
+
+    double ddycom = base_state.xdd[_X_];
+    double dycom_predict = drcom(0) + ddycom * t_predict ;
+
+    Y_CapturePoint = ycom_predict + sqrt(0.9/9.81)*dycom_predict;
+
+
 //    cout << "dx "<< drcom(1) <<"\tTc*dx "<< sqrt(1.0/9.81)*drcom(1) << endl;
 //    cout << "COM: " << rcom(1) <<"\t CP: "<< CapturePoint << endl;
 //    cout << "CP: "<< CapturePoint << endl;
 
+//    cout << "ddy: "<< ddycom << endl;
     /* falling detection */
 
-    if (CapturePoint>stability_margin && real_time >= push_time)
+    if (Y_CapturePoint>stability_margin_lateral && real_time >= push_time)
     {
         isFall=true;
     }
@@ -195,7 +220,7 @@ int mytest::run()
     {
         isFall=false;
     }
-//    cout << "fall? "<< isFall << endl;
+//    cout << "Ycp: "<< Y_CapturePoint <<"\t" << isFall << endl;
 
     VectorXd leftArm;
     leftArm=VectorXd::Zero(6);
@@ -243,11 +268,11 @@ int mytest::run()
     getEuler();
 //    cout << "pitch " << m_pitch << endl;
 //    cout << "torso_pitch_th " << torso_pitch_th << endl;
-    if( real_time >= 0.2*push_time)
-    {
-        attitudeControl();
-        torso_pitch_th +=torso_pitch_w*sampleT;
-    }
+//    if( real_time >= 0.2*push_time)
+//    {
+//        attitudeControl();
+//        torso_pitch_th +=torso_pitch_w*sampleT;
+//    }
 
     /* servo control */
     for(int i=1; i<=N_DOFS; ++i)
@@ -275,30 +300,49 @@ int mytest::run()
 
 
     // feedforward ankle torque for partial gravity compensation
-    joint_des_state[L_AFE].uff = cog_kp*(0.10-rcom(1))-cog_kd*drcom(1);
-    joint_des_state[R_AFE].uff = cog_kp*(0.10-rcom(1))-cog_kd*drcom(1);
+    joint_des_state[L_AFE].uff = cog_kp*(0.15-xcom)-cog_kd*drcom(1);
+    joint_des_state[R_AFE].uff = cog_kp*(0.15-xcom)-cog_kd*drcom(1);
 
-    // left shoudler pitch
-    if (!(bool)flag_one_hand)
+    if ((bool)flag_sagittal)
     {
-        joint_des_state[L_SFE].th = joint_init_state[L_SFE-1] + reflex_mag_sp*Arm.shoulder.m_retraction(0);
+        // for the sagittal push recovery case
+        // left shoudler pitch
+        if (!(bool)flag_one_hand)
+        {
+            joint_des_state[L_SFE].th = joint_init_state[L_SFE-1] + reflex_mag_sp*Arm.shoulder.m_retraction(0);
 
-        // left shoudler roll
-        joint_des_state[L_SAA].th = joint_init_state[L_SAA-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
+            // left shoudler roll
+            joint_des_state[L_SAA].th = joint_init_state[L_SAA-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
 
-        // left elbow
-        joint_des_state[L_EB].th = joint_init_state[L_EB-1]+reflex_mag_e*Arm.elbow.m_retraction(0);
+            // left elbow
+            joint_des_state[L_EB].th = joint_init_state[L_EB-1]+reflex_mag_e*Arm.elbow.m_retraction(0);
 
+            // right shoudler roll
+            joint_des_state[R_SAA].th = joint_init_state[R_SAA-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
+        }
+
+        // right shoudler pitch
+        joint_des_state[R_SFE].th = joint_init_state[R_SFE-1] + reflex_mag_sp* Arm.shoulder.m_retraction(0);
+        // right elbow
+        joint_des_state[R_EB].th = joint_init_state[R_EB-1]+reflex_mag_e*Arm.elbow.m_retraction(0);
+    }
+    else
+    {
+        // for the lateral push recovery case
         // right shoudler roll
-        joint_des_state[R_SAA].th = joint_init_state[R_SAA-1]-reflex_mag_sr*Arm.shoulder.m_retraction(0);
+        joint_des_state[R_SAA].th = joint_init_state[R_SAA-1] + reflex_mag_sr * Arm.shoulder.m_retraction(0);
+
+        // right shoudler pitch
+        joint_des_state[R_SFE].th = joint_init_state[R_SFE-1] + reflex_mag_sp * Arm.shoulder.m_retraction(0);
+
+        // right shoulder yaw
+        joint_des_state[R_HR].th = joint_init_state[R_SFE-1] + reflex_mag_sy * Arm.shoulder.m_retraction(0);
+
+        // right elbow
+        joint_des_state[R_EB].th = joint_init_state[R_EB-1] + reflex_mag_e  * Arm.elbow.m_retraction(0);
     }
 
-    // right shoudler pitch
-    joint_des_state[R_SFE].th = joint_init_state[R_SFE-1] + reflex_mag_sp* Arm.shoulder.m_retraction(0);
-    // right elbow
-    joint_des_state[R_EB].th = joint_init_state[R_EB-1]+reflex_mag_e*Arm.elbow.m_retraction(0);
-
-
+//    usleep(10000);
 //    cout<<joint_state[L_EB].load+joint_state[L_SFE].load<<"\t"<<joint_state[R_EB].load+joint_state[R_SFE].load<<endl;
 //    cout<<joint_state[L_AFE].load+joint_state[R_AFE].load<<" \t"<<joint_state[L_AFE].u+joint_state[R_AFE].u<<endl;
 
