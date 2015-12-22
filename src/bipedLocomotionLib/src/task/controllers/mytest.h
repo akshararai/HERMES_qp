@@ -55,7 +55,8 @@ namespace wholebody_demo
       Vector3d drcom;
       Vector3d rcom;
       Vector3d rcom_init;
-      double CapturePoint;
+      double X_CapturePoint;
+      double Y_CapturePoint;
       double output;
       VectorXd joint_init_state;
       
@@ -107,14 +108,16 @@ namespace wholebody_demo
         int Num_loop;
         bool isFall;
         double stability_margin;
+        double stability_margin_lateral;
 
         double cog_kp; //=500.0;
         double cog_kd; //=50.0;
 
-      double reflex_mag_sp;
-      double reflex_mag_sr;
-      double reflex_mag_e;
-      double reflex_time;
+        double reflex_mag_sp;
+        double reflex_mag_sr;
+        double reflex_mag_sy;
+        double reflex_mag_e;
+        double reflex_time;
 
         double m_yaw;
         double m_roll;
@@ -128,6 +131,10 @@ namespace wholebody_demo
         double torso_pitch_kd;
 
         double flag_one_hand;
+
+        double flag_sagittal;	// switch between sagittal and lateral push recovery
+
+        double t_predict; // predict 0.1 s ahead
 
         void getEuler();
         void attitudeControl();

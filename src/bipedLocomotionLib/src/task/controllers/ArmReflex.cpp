@@ -35,9 +35,9 @@ isDebugMode(false)
 
     hand_contact="00";
 
-//    elbow.a_max_retract=6.0;
-    elbow.A_retract=2.0*shoulder.A_retract;
-
+    // for lateral push to the right
+    shoulder.A_retract=1.0;
+    elbow.A_retract=1.0;
 
     if (isDebugMode)
     {
@@ -262,7 +262,7 @@ void ArmReflex::stateMachine(bool fall_trigger, double realtime)
 	}
 
     // add hand contact state, if contact force > threshold, set done 1
-    // so below you configure only once the flags
+    // so below you configure only once the flags, for push back reflex
     if (shoulder.flg_retract.enable && !shoulder.flg_retract.done && shoulder.isContact)
     {
         shoulder.flg_retract.done=true;
